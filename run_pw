@@ -1,0 +1,9 @@
+#!/bin/sh
+VM=python
+PW_PATH=$(dirname $(realpath $0))
+
+if [ $# -gt 0 ] ; then
+	PYTHONPATH=${PW_PATH} ${VM} ${PW_PATH}/packetweaver/pw.py $@
+else
+	PYTHONPATH=${PW_PATH} ${VM} ${PW_PATH}/packetweaver/pw.py interactive $@
+fi
