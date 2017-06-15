@@ -25,11 +25,19 @@ class RandDraw(object):
         for n in l:
             inter = n.split('-')
             if len(inter) == 2:
+                if inter[0] == '' or inter[1] == '' or \
+                        not 0 <= int(inter[0]) <= 255 or \
+                        not 0 <= int(inter[1]) <= 255:
+                    print('IP range from 0 to 255 (current is {})'.format(inter[0]))
+                    return None
                 ip_num = "{}".format(self._rng.randint(int(inter[0]), int(inter[1])))
             elif len(inter) == 1:
                 if inter[0] == "*":
                     ip_num = "{}".format(self._rng.randint(0, 255))
                 elif inter:
+                    if not 0 <= int(inter[0]) <= 255:
+                        print('IP range from 0 to 255 (current is {})'.format(inter[0]))
+                        return None
                     ip_num = inter[0]
             else:
                 print("Bad ipv4 expression items - a correct pattern is '1-23.43.*.*'.")
