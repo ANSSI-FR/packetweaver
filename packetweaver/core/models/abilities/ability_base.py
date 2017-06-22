@@ -143,6 +143,18 @@ class AbilityBase(object):
         """
         self._options = {k: opt.get_value() for k, opt in opts.items()}
 
+    def set_opts(self, **kwargs):
+        """ Setup several arguments at the same time
+
+        :param kwargs: list of option_name='val' to affect to the abilitiy
+        @Raise Exception
+        """
+        for opt in kwargs:
+            try:
+                self.set_opt(opt, kwargs[opt])
+            except:
+                raise Exception('Invalid parameter')
+
     def set_opt(self, opt_name, opt_value):
         """ Set a value to a specific option and check
 
