@@ -83,6 +83,20 @@ class ModuleListModel(object):
                 for abl in abl_group
             ]
             returned_list += abl_group
+
+        # Detect duplicated ability names
+        l_abl_names = []
+        for path, abl in last_search:
+            if abl.get_name() not in l_abl_names:
+                l_abl_names.append(abl.get_name())
+            else:
+                self._view.warning(
+                    'An ability name should not be reused. Please specify another name for one of the [{}] ability.'.format(
+                        abl.get_name()
+                    )
+                )
+                raise AssertionError
+
         self._last_search_results = last_search
         return returned_list
 
