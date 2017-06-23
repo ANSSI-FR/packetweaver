@@ -1,6 +1,7 @@
 # coding: utf8
 # for future python 3 compatibility
 import sys
+import packetweaver.libs.sys.path_handling as path_ha
 if sys.version_info > (3, 0):
     import configparser as config_parser
 else:
@@ -50,12 +51,16 @@ class AppModel(object):
     def get_app_version(self):
         return self.app_version
 
-    def get_packages(self):
+    def get_packages(self, absolute=True):
         """ Return all the pw packages path of the activated packages
+
+        return only absolute
 
         :returns: list of the paths
         """
         try:
+            if absolute is True:
+                return [path_ha.get_abs_path(self._config.get('Packages', p)) for p in self._config.options('Packages')]
             return [self._config.get('Packages', p) for p in self._config.options('Packages')]
         except config_parser.NoSectionError:
             return []

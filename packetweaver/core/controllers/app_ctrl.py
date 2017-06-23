@@ -6,6 +6,7 @@ import os
 import select
 import signal
 import time
+import packetweaver.libs.sys.path_handling as path_ha
 import packetweaver.core.controllers.cmd_line_ctrl as cmd_line_ctrl
 import packetweaver.core.controllers.ctrl as ctrl
 import packetweaver.core.controllers.shell_ctrl as shell_ctrl

@@ -1,8 +1,10 @@
 # coding: utf8
 import imp
+import packetweaver.libs.sys.path_handling as path_ha
 import packetweaver.core.models.modules.ability_module as ability_module
 import packetweaver.core.views.text as output
 import packetweaver.core.views.view_interface as view_interface
+
 
 class ModuleFactory(object):
     """ Factory to load python modules from different types of input
@@ -27,7 +29,7 @@ class ModuleFactory(object):
 
     @staticmethod
     def get_module(module_path, view=output.Log()):
-        """ Return a ModuleModel based on a path
+        """ Return a AbilityModel based on a path
 
         This is mostly used to get the python module of an ability package
         :param module_path: path to the module (absolute or relative)
@@ -42,11 +44,13 @@ class ModuleFactory(object):
         This is mostly use in case of ability packages, where the name
         is the one defined in the configuration file.
 
+        The path is always returned in its absolute form.
+
         :param name: name of the ability package
         """
         if isinstance(self._app_model, type(None)):
             return None
-        pkg_path = self._app_model.get_config('Packages', name)
+        pkg_path = path_ha.get_abs_path(self._app_model.get_config('Packages', name))
         if isinstance(pkg_path, type(None)):
             return None
         return self.get_module(pkg_path, self._view)

@@ -1,6 +1,7 @@
 # coding: utf8
 import abc
 import copy
+import packetweaver.libs.sys.path_handling as path_hand
 import packetweaver.core.models.modules.module_factory as module_factory
 import packetweaver.core.models.abilities.ability_base as ability_base
 import packetweaver.core.views.view_interface as view_interface
@@ -147,5 +148,5 @@ class ModuleListModel(object):
         """
         searched_path = [limit] if limit is not None else self._paths
         for pkg_path in searched_path:
-            m = module_factory.ModuleFactory.get_module(pkg_path, self._view)
+            m = module_factory.ModuleFactory.get_module(path_hand.get_abs_path(pkg_path), self._view)
             self._module_list[pkg_path] = m.get_standalone_abilities()
