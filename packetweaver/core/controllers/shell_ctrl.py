@@ -125,6 +125,8 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         Example:
             > shell python
             > !ip a
+
+        The current directory is on your PacketWeaver pw.py file.
         """
         os.system(s)
 
@@ -310,12 +312,16 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
 
         while 1:
             try:
+                prev_dir = os.getcwd()
+                os.chdir(u.get_pkg_abs_path())
                 u.cmdloop()
             except kbd_exception.CtrlD:
                 self._view.info("")
                 break
             except kbd_exception.CtrlC:
                 pass
+            finally:
+                os.chdir(prev_dir)
 
     def can_exit(self):
         """ Used to prevent exiting the shell """

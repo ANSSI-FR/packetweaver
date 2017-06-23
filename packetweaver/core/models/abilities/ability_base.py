@@ -314,8 +314,12 @@ class AbilityBase(object):
     def get_metadata(cls):
         return copy.deepcopy(cls._info)
 
-    def get_possible_values(self, opt_name, typed):
-        """
+    def get_possible_values(self, opt_name, typed, ref=None):
+        """ Get suggestion on possible values for an option
+
+        :param opt_name: name of the option
+        :param typed: begin of the text submit to the module_option in order to get completion suggestions
+        :param ref: custom data passed directly to the module_option by the ability
         @raise AssertionError
         """
         if opt_name not in type(self)._opt_hash:
@@ -323,10 +327,10 @@ class AbilityBase(object):
 
         opt = type(self)._opt_hash[opt_name]
         if isinstance(opt, module_option.ModuleOption):
-            return opt.get_possible_values(typed)
+            return opt.get_possible_values(typed, ref)
 
         assert (isinstance(opt, OptionTemplateEntry))
-        return opt.entry.get_possible_values(typed)
+        return opt.entry.get_possible_values(typed, ref)
 
     def is_a_valid_value_for_this_option(self, opt_name, value):
         if opt_name not in type(self)._opt_hash:

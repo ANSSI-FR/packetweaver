@@ -50,7 +50,7 @@ class ModuleFactory(object):
         """
         if isinstance(self._app_model, type(None)):
             return None
-        pkg_path = path_ha.get_abs_path(self._app_model.get_config('Packages', name))
+        pkg_path = path_ha.get_abs_path(self._app_model.get_config('Packages', name), self._app_model.framework_path)
         if isinstance(pkg_path, type(None)):
             return None
         return self.get_module(pkg_path, self._view)

@@ -7,6 +7,7 @@ import pipes
 import sys
 import readline
 import traceback
+import packetweaver.libs.sys.path_handling as path_ha
 import packetweaver.core.views.text as output
 import packetweaver.core.views.view_interface as view_interface
 import packetweaver.core.models.abilities.ability_base as ability_base
@@ -21,6 +22,7 @@ if sys.version_info > (3, 0):
     import configparser as config_parser
 else:
     import ConfigParser as config_parser
+
 
 class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
     def __init__(self, module, ability, app_model, module_factory, view=output.Log()):
@@ -57,6 +59,19 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
 
         self._module_inst = new_mod_inst
 
+    def get_pkg_abs_path(self):
+        """ Return the absolute path of the current PacketWeaver package
+
+        The package base folder is defined as the parent directory of the 'abilities' folder.
+
+        :return: the absolute path of the package
+        """
+        abs_abl_path = path_ha.get_abs_path(self._module.get_module_path())
+        return os.path.dirname(abs_abl_path)
+
+    def define_rel_path(self, path_):
+        pass
+
     def emptyline(self):
         """ Cmd() library specific need
 
@@ -75,7 +90,7 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
             > shell python
             > !ip a
 
-        :param s: the shell command to execute
+        The current directory is set on the current ability package path.
         """
         os.system(s)
 
@@ -241,27 +256,35 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
         Autocomplete accessible random value generators
         available for the concerned parameter.
         """
-        # complete with available options - suppose only one =, no spaces
-        if "=" in line:
-            option_name, arg_typed = line[line.find(' ')+1:].split("=")
-            l = self._module_inst.get_possible_values(option_name, arg_typed)
-            last_completer_delim_index = -1
-            for delim in readline.get_completer_delims():
-                last_completer_delim_index = max(last_completer_delim_index, arg_typed.rfind(delim))
-
-            return [
-                val
-                for val in l
-                if self._module_inst.is_a_valid_value_for_this_option(
-                    option_name, arg_typed[:last_completer_delim_index+1] + val
+        try:
+            # complete with available options - suppose only one =, no spaces
+            if "=" in line:
+                option_name, arg_typed = line[line.find(' ')+1:].split("=")
+                l = self._module_inst.get_possible_values(
+                    option_name,
+                    arg_typed,
+                    self.get_pkg_abs_path()
                 )
-            ]
-        else:
-            return [
-                '{}='.format(i)
-                for i in type(self._module_inst).get_option_list()
-                if i.startswith(text)
-            ]
+                last_completer_delim_index = -1
+                for delim in readline.get_completer_delims():
+                    last_completer_delim_index = max(last_completer_delim_index, arg_typed.rfind(delim))
+
+                return [
+                    val
+                    for val in l
+                    if self._module_inst.is_a_valid_value_for_this_option(
+                        option_name, arg_typed[:last_completer_delim_index+1] + val
+                    )
+                ]
+            else:
+                return [
+                    '{}='.format(i)
+                    for i in type(self._module_inst).get_option_list()
+                    if i.startswith(text)
+                ]
+        except:
+            # display completion method crash message until not covered by tests
+            traceback.print_exc()
 
     def do_options(self, s=''):
         """
@@ -389,6 +412,7 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
         Example:
             save /tmp/my_abl
         """
+        filename = path_ha.get_abs_path(filename, self.get_pkg_abs_path())
         if not os.access(filename, os.F_OK):
             try:
                 open(filename, 'w').close()
@@ -426,6 +450,7 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
             cp.set('Configuration', key, val)
 
         cp.write(open(filename, 'w'))
+        self._view.info('Current option values have been saved to {}.'.format(filename))
 
     def do_load(self, filename):
         """
@@ -433,10 +458,12 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
         configuration file.
         
         Any incorrect values in the option file is simply ignored.
+        Relative file name will start from the current ability package path.
         
         Example:
             load /tmp/my_abl
         """
+        filename = path_ha.get_abs_path(filename, self.get_pkg_abs_path())
         if not os.access(filename, os.R_OK):
             self._view.error('Unreadable file: {}'.format(filename))
             return
@@ -465,11 +492,18 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
 
         Autocomplete the path of the file to load
         """
-        path = line[line.find(' ')+1:]
-        return [
-            candidate
-            for candidate in module_option.PathOpt.get_possible_values(path)
-            if candidate.startswith(text)
-        ]
-    
+        try:
+            path = line[line.find(' ')+1:]
+            return [
+                candidate
+                for candidate in module_option.PathOpt.get_possible_values(
+                    path,
+                    self.get_pkg_abs_path()
+                )
+                if candidate.startswith(text)
+            ]
+        except:
+            # display completion method crash message until not covered by tests
+            traceback.print_exc()
+
     complete_save = complete_load

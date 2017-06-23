@@ -1,12 +1,12 @@
 # coding: utf8
 # for future python 3 compatibility
+import os
 import sys
 import packetweaver.libs.sys.path_handling as path_ha
 if sys.version_info > (3, 0):
     import configparser as config_parser
 else:
     import ConfigParser as config_parser
-import os
 
 
 class AppModel(object):
@@ -24,6 +24,7 @@ class AppModel(object):
         self.app_prompt_l1 = "pw> "
         self.app_prompt_l2 = "pw ({})> "
         self.app_slogan = "A Python framework for script filing and task sequencing"
+        self.framework_path = os.getcwd()
         self._load_config(config_filename)
 
     def _load_config(self, config_filename):
