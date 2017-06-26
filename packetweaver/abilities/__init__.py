@@ -16,10 +16,12 @@ from .osi.transport_l4 import tls_server
 
 from .examples import demo_options
 from .examples import demo_info
+from .examples import call_another
 
 exported_abilities = [
     demo_options.Ability,
     demo_info.Ability,
+    call_another.Ability,
 
     debug_packets.Ability,
     echo_server.Ability,
