@@ -15,9 +15,12 @@ from .osi.transport_l4 import tls_client
 from .osi.transport_l4 import tls_server
 
 from .examples import demo_options
+from .examples import demo_info
 
 exported_abilities = [
     demo_options.Ability,
+    demo_info.Ability,
+
     debug_packets.Ability,
     echo_server.Ability,
     demux.Ability,
