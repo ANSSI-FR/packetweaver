@@ -19,6 +19,7 @@ from .examples import demo_info
 from .examples import call_another
 from .examples import demo_output
 from .examples.threaded import hello_thread
+from .examples.threaded import call_hello_thread
 
 exported_abilities = [
     demo_options.Ability,
@@ -26,6 +27,7 @@ exported_abilities = [
     call_another.Ability,
     demo_output.Ability,
     hello_thread.Ability,
+    call_hello_thread.Ability,
 
 
     debug_packets.Ability,
