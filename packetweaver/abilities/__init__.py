@@ -20,15 +20,24 @@ from .examples import call_another
 from .examples import demo_output
 from .examples.threaded import hello_thread
 from .examples.threaded import call_hello_thread
+from .examples.threaded import chain_abl
+
+# component abilities
+from .examples.threaded import invert_str
+from .examples.threaded import show_str
 
 exported_abilities = [
+    # standalone demo abl
     demo_options.Ability,
     demo_info.Ability,
     call_another.Ability,
     demo_output.Ability,
     hello_thread.Ability,
     call_hello_thread.Ability,
-
+    chain_abl.Ability,
+    # component demo abl
+    invert_str.Ability,
+    show_str.Ability,
 
     debug_packets.Ability,
     echo_server.Ability,
