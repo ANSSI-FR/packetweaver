@@ -4,6 +4,7 @@ import re
 import cmd
 import signal
 import readline
+import traceback
 import packetweaver.libs.gen.pwcolor as pwc
 import packetweaver.core.models.module_list_model as module_list_model
 import packetweaver.core.models.modules.module_factory as module_factory
@@ -303,6 +304,7 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
             self._view.error("The module cannot be found, make sure it exists and is in a python package (__init__.py)")
             return
         except:
+            traceback.print_exc()
             self._view.error("> Module could not be loaded, please check the previous error message")
             return
 
