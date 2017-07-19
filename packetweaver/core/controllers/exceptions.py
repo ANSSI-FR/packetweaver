@@ -9,6 +9,15 @@ class ConfNone(Conf):
     pass
 
 
+class ConfEditor(Conf):
+    pass
+
+
+class ConfEditorInvalid(ConfEditor):
+    """ Warn about an invalid editor command in the Tools section of the framework configuration file"""
+    pass
+
+
 class ConfDep(Conf):
     """ Exception warning about an error in the "Dependencies" section of the framework configuration file """
     pass

@@ -2,6 +2,7 @@
 # for future python 3 compatibility
 import os
 import sys
+import subprocess
 import packetweaver.core.controllers.exceptions as ex
 import packetweaver.libs.sys.path_handling as path_ha
 if sys.version_info > (3, 0):
@@ -31,6 +32,7 @@ class AppModel(object):
         self.hist_file_default_path = '.pwhistory'
         self.err_header_pkg = 'Configuration file ({}) | Packages:\n'.format(self._config_file)
         self.err_header_dep = 'Configuration file ({}) | Dependencies:\n'.format(self._config_file)
+        self.err_header_editor = 'Configuration file ({}) | Tools:\n'.format(self._config_file)
 
     def _load_config(self):
         """
@@ -55,6 +57,27 @@ class AppModel(object):
 
     def get_app_version(self):
         return self.app_version
+
+    def get_editor(self):
+        """ Return the editor specified in the framework configuration file
+
+        Having an Tools/editor configuration key is optional but must be valid when provided
+        The test is performed with the linux "which" command.
+
+        :raises: ConfEditorInvalid if a specified editor is not valid
+        :returns: str of the command to run the editor or None if no editor are specified
+        """
+        editor = None
+        try:
+            editor = self.get_config('Tools', 'editor')
+            if editor is not None:
+                try:
+                    subprocess.check_output(['which', editor])
+                except subprocess.CalledProcessError:
+                    raise ex.ConfEditorInvalid('{} [{}] is not a valid editor'.format(self.err_header_editor, editor))
+        except config_parser.NoSectionError:
+            pass
+        return editor
 
     def get_packages(self, absolute=True):
         """ Return all the pw packages path specified in the framework configuration file

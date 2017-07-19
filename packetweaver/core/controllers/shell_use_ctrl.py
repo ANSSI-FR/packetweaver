@@ -123,7 +123,7 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
             fn = inspect.getsourcefile(ability)
             files.add(fn)
 
-        editor = self._app_model.get_config('Tools', 'editor')
+        editor = self._app_model.get_editor()
         if editor is None:
             self._view.warning('No editor configured.')
             return

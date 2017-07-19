@@ -81,6 +81,13 @@ class AppCtrl(ctrl.Ctrl):
         except ex.ConfNone as e:
             self._view.warning('{}'.format(e))
 
+        # Check editor
+        try:
+            self._app_model.get_editor()
+        except ex.ConfEditorInvalid as e:
+            self._view.error('{}'.format(e))
+            raise AssertionError()
+
         # choose ctrl
         if self._cli_args.subcmd == 'interactive':
             self._ctrl = shell_ctrl.ShellCtrl(self._app_model, self._module_factory, view=self._view)
