@@ -5,6 +5,7 @@ import cmd
 import signal
 import readline
 import traceback
+import packetweaver.core.controllers.exceptions as ex
 import packetweaver.libs.gen.pwcolor as pwc
 import packetweaver.core.models.module_list_model as module_list_model
 import packetweaver.core.models.modules.module_factory as module_factory
@@ -53,7 +54,11 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
             if not os.path.isfile(self._history_path):
                 open(self._history_path, "w").close()  # touch file
 
-        self._module_list_model = module_list_model.ModuleListModel(self._app_model.get_packages())
+        try:
+            l_pkg = self._app_model.get_packages()
+        except ex.ConfNone:
+            l_pkg = []
+        self._module_list_model = module_list_model.ModuleListModel(l_pkg)
         self._view = view
 
         signal.signal(signal.SIGINT, self._handle_ctrlc)

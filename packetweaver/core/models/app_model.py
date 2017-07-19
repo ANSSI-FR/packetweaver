@@ -2,6 +2,7 @@
 # for future python 3 compatibility
 import os
 import sys
+import packetweaver.core.controllers.exceptions as ex
 import packetweaver.libs.sys.path_handling as path_ha
 if sys.version_info > (3, 0):
     import configparser as config_parser
@@ -28,6 +29,8 @@ class AppModel(object):
         self._config_file = path_ha.get_abs_path(config_filename)
         self._load_config()
         self.hist_file_default_path = '.pwhistory'
+        self.err_header_pkg = 'Configuration file ({}) | Packages:\n'.format(self._config_file)
+        self.err_header_dep = 'Configuration file ({}) | Dependencies:\n'.format(self._config_file)
 
     def _load_config(self):
         """
@@ -54,28 +57,62 @@ class AppModel(object):
         return self.app_version
 
     def get_packages(self, absolute=True):
-        """ Return all the pw packages path of the activated packages
+        """ Return all the pw packages path specified in the framework configuration file
 
-        return only absolute
+        Tests are performed on the package paths to enforce the following properties:
 
-        :returns: list of the paths
+        - this path must exists
+        - it must be a folder
+
+        The corresponding exception are raised when one of these conditions is not met.
+
+        :raises: ConfPkgAbl, ConfPkgNotExists, ConfPkgNotDir, ConfPkgNone
+        :returns: list of the package paths
         """
         try:
-            if absolute is True:
-                return [path_ha.get_abs_path(self._config.get('Packages', p)) for p in self._config.options('Packages')]
-            return [self._config.get('Packages', p) for p in self._config.options('Packages')]
+            l_pkg_path = []
+            for p in self._config.options('Packages'):
+                path = path_ha.get_abs_path(self._config.get('Packages', p)) if absolute else p
+                pkg = pkg[:-1] if path.endswith('/') else path  # remove trailing / if exists
+                if not os.path.exists(pkg):
+                    raise ex.ConfPkgNotExists('{} - specified [{}] path does not exists'.format(self.err_header_pkg, pkg))
+                if not os.path.isdir(pkg):
+                    raise ex.ConfPkgNotDir('{} - specified [{}] must be a directory'.format(self.err_header_pkg, pkg))
+                l_pkg_path.append(path)
+            if len(l_pkg_path) == 0:
+                raise ex.ConfPkgNone('{} - no packages are activated, you will not find any ability.'.format(self.err_header_pkg))
+            return l_pkg_path
         except config_parser.NoSectionError:
-            return []
+            raise ex.ConfPkgNone('{} - no packages are activated and the "Packages" section does not exist, you will not find any ability.'.format(self.err_header_pkg))
 
     def get_dependencies(self):
-        """ Return all the pw packages path of the activated packages
+        """ Return all dependencies specified in the framework configuration file
 
-        :returns: list of the paths
+        These dependencies are paths to python modules that are supposed to be added to the PYTHONPATH.
+        The following tests are performed on them:
+
+        - the path must exists
+        - the path must point out a directory
+
+        The corresponding exception are raised when one of these conditions is not met.
+
+        :raises: ConfDepNotExists, ConfDepNotDir, ConfDepNone
+        :returns: list of the dependency paths
         """
         try:
-            return [self._config.get('Dependencies', p) for p in self._config.options('Dependencies')]
+            l_dep = []
+            for p in self._config.options('Dependencies'):
+                path = self._config.get('Dependencies', p)
+                if not os.path.exists(path):
+                    raise ex.ConfDepNotExists('{} - specified [{}] path does not exists'.format(self.err_header_dep, path))
+                if not os.path.isdir(path):
+                    raise ex.ConfDepNotDir(
+                        '{} - specified [{}] path must point out a python module directory'.format(self.err_header_dep, path)
+                    )
+                l_dep.append(path)
+            return l_dep
         except config_parser.NoSectionError:
-            return []
+            return ex.ConfDepNone()
 
     def get_package_name_by_path(self, path):
         """ Return a pw package corresponding to its path
