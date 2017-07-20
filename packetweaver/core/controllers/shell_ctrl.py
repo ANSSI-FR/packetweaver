@@ -48,7 +48,7 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
             self._history_path = self._app_model.get_hist_file_path()
         except ex.ConfHistFileNotAccessible as e:
             self._view.error('{}'.format(e))
-            raise AssertionError()
+            raise ex.ExitPw()
         readline.read_history_file(self._history_path)
 
         try:

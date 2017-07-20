@@ -52,7 +52,7 @@ class AppCtrl(ctrl.Ctrl):
 
         Then the appropriate controller is instantiated (command line or interactive) base on the command line argument
 
-        :raises: AssertionError if invalid values are detected
+        :raises: ExitPw if invalid values are detected
         """
         # Add to PYTHONPATH user specific dependencies
         try:
@@ -63,7 +63,7 @@ class AppCtrl(ctrl.Ctrl):
                     sys.path.append(path)
         except ex.ConfDep as e:
             self._view.error('{}'.format(e))
-            raise AssertionError()
+            raise ex.ExitPw()
         except ex.ConfDepNone:
             pass
 
@@ -77,7 +77,7 @@ class AppCtrl(ctrl.Ctrl):
                     l_pkg.append(p)
         except ex.ConfPkg as e:
             self._view.error('{}'.format(e))
-            raise AssertionError()
+            raise ex.ExitPw()
         except ex.ConfNone as e:
             self._view.warning('{}'.format(e))
 
@@ -86,7 +86,7 @@ class AppCtrl(ctrl.Ctrl):
             self._app_model.get_editor()
         except ex.ConfEditorInvalid as e:
             self._view.error('{}'.format(e))
-            raise AssertionError()
+            raise ex.ExitPw()
 
         # choose ctrl
         if self._cli_args.subcmd == 'interactive':

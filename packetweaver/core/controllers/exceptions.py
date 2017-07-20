@@ -1,6 +1,11 @@
 # coding: utf8
 
 
+class ExitPw(Exception):
+    """ Exception to cleanly exit the application on error """
+    pass
+
+
 class Conf(Exception):
     pass
 
