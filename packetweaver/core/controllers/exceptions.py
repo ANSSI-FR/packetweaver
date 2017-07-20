@@ -9,6 +9,15 @@ class ConfNone(Conf):
     pass
 
 
+class ConfHistFile(Conf):
+    pass
+
+
+class ConfHistFileNotAccessible(ConfHistFile):
+    """ Warn that the file used to store the interactive CLI history is not accessible """
+    pass
+
+
 class ConfEditor(Conf):
     pass
 

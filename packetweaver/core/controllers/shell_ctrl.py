@@ -32,6 +32,7 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         """
         super(ShellCtrl, self).__init__()
 
+        self._view = view
         # documentation view customization
         self.ruler = "="
         self.doc_header = "Documented commands (type help <topic>):"
@@ -43,23 +44,18 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         self._search_or_opt_name = '-o'
 
         self.prompt = self._app_model.app_prompt_l1
-
-        self._history_path = self._app_model.get_config('Internals', 'HistFile')
-        if self._history_path is None:
-            self._history_path = '~/.pwhistory'
-        self._history_path = os.path.expanduser(self._history_path)
         try:
-            readline.read_history_file(self._history_path)
-        except IOError:
-            if not os.path.isfile(self._history_path):
-                open(self._history_path, "w").close()  # touch file
+            self._history_path = self._app_model.get_hist_file_path()
+        except ex.ConfHistFileNotAccessible as e:
+            self._view.error('{}'.format(e))
+            raise AssertionError()
+        readline.read_history_file(self._history_path)
 
         try:
             l_pkg = self._app_model.get_packages()
         except ex.ConfNone:
             l_pkg = []
         self._module_list_model = module_list_model.ModuleListModel(l_pkg)
-        self._view = view
 
         signal.signal(signal.SIGINT, self._handle_ctrlc)
 

@@ -33,6 +33,7 @@ class AppModel(object):
         self.err_header_pkg = 'Configuration file ({}) | Packages:\n'.format(self._config_file)
         self.err_header_dep = 'Configuration file ({}) | Dependencies:\n'.format(self._config_file)
         self.err_header_editor = 'Configuration file ({}) | Tools:\n'.format(self._config_file)
+        self.err_header_hist = 'Configuration file ({})| Internals:\n'.format(self._config_file)
 
     def _load_config(self):
         """
@@ -57,6 +58,35 @@ class AppModel(object):
 
     def get_app_version(self):
         return self.app_version
+
+    def get_hist_file_path(self):
+        """ Return a path to the file where is store the interactive CLI command history
+
+        The path to this file is taken from the framework configuration file.
+
+        :raises: ConfHistFileNotAccessible
+        :returns: str containing the path to the file
+        """
+        hist_file_path = None
+        try:
+            hist_file_path = self.get_config('Internals', 'HistFile')
+        except config_parser.NoSectionError:
+            pass
+
+        if hist_file_path is None:
+            hist_file_path = self.hist_file_default_path
+        hist_file_path = path_ha.get_abs_path(hist_file_path)
+
+        # make sure the file exists (or create it)
+        try:
+            if not os.path.isfile(hist_file_path):
+                open(hist_file_path, "w").close()
+        except IOError:
+            raise ex.ConfHistFileNotAccessible(
+                '{} history file at [{}] is not accessible or is not a file'.format(self.err_header_hist, hist_file_path)
+            )
+
+        return hist_file_path
 
     def get_editor(self):
         """ Return the editor specified in the framework configuration file
