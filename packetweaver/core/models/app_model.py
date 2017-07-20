@@ -25,13 +25,14 @@ class AppModel(object):
         self.app_prompt_l2 = "pw ({})> "
         self.app_slogan = "A Python framework for script filing and task sequencing"
         self.framework_path = os.getcwd()
-        self._load_config(config_filename)
+        self._config_file = path_ha.get_abs_path(config_filename)
+        self._load_config()
+        self.hist_file_default_path = '.pwhistory'
 
-    def _load_config(self, config_filename):
+    def _load_config(self):
         """
         @raise os.error
         """
-        self._config_file = config_filename
         if not os.access(self._config_file, os.R_OK):
             raise os.error('Cannot read config file: {}'.format(self._config_file))
         self._config = config_parser.RawConfigParser()
