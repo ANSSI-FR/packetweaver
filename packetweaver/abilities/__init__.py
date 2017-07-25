@@ -21,6 +21,7 @@ from .examples import demo_output
 from .examples.threaded import hello_thread
 from .examples.threaded import call_hello_thread
 from .examples.threaded import chain_abl
+from .examples.threaded import sync_tcp_client
 
 # component abilities
 from .examples.threaded import invert_str
@@ -35,6 +36,7 @@ exported_abilities = [
     hello_thread.Ability,
     call_hello_thread.Ability,
     chain_abl.Ability,
+    sync_tcp_client.Ability,
     # component demo abl
     invert_str.Ability,
     show_str.Ability,
