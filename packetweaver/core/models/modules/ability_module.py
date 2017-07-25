@@ -33,7 +33,7 @@ class AbilityModule(object):
             for abl in self._mod.exported_abilities:
                 s.union(set(abl.get_option_list()))
         except AttributeError:
-            raise ex.ConfError(
+            raise ex.Conf(
                 '\nYour [{}] package does not exist or does not have a valid "exported_abilities" setup in its abilities/__init__.py module.'.format(
                     self._mod_path
                 )
