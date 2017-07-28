@@ -20,7 +20,7 @@ class AppModel(object):
 
         @raise os.error
         """
-        self.app_version = "0.1"
+        self.app_version = "0.2"
         self.app_name = "Packet Weaver"
         self.app_name_abbrev = "pw"
         self.app_prompt_l1 = "pw> "
