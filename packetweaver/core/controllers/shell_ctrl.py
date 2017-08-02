@@ -258,6 +258,27 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         """ Return the """
         return self._module_list_model.get_module_by_last_search_id(index)
 
+    def do_conf(self, s=''):
+        """
+        Open the PacketWeaver configuration file
+        in your editor.
+
+        /!\ You will have to restart the framework
+        in order to apply your modifications. /!\
+        """
+        conf_file_path = self._app_model.get_config_file_path()
+        editor = self._app_model.get_editor()
+        if editor is None:
+            self._view.warning(
+                'No editor configured. Please add one in your [{}] configuration file.{}'.format(
+                    self._app_model.get_config_file_path(),
+                    '\ne.g:\n    [Tools]\n    editor=vim'
+                )
+            )
+            return
+        self.do_shell('{} {}'.format(editor, conf_file_path))
+        self._view.warning('Please restart the framework in order to apply your modifications.')
+
     def do_use(self, s=''):
         """
         Select the ability to load using its index

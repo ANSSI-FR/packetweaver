@@ -125,9 +125,13 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
 
         editor = self._app_model.get_editor()
         if editor is None:
-            self._view.warning('No editor configured.')
+            self._view.warning(
+                'No editor configured. Please add one in your [{}] configuration file.{}'.format(
+                    self._app_model.get_config_file_path(),
+                    '\ne.g:\n    [Tools]\n    editor=vim'
+                )
+            )
             return
-
         self.do_shell('{} {}'.format(editor, ' '.join(files)))
         self.reload()
 

@@ -44,6 +44,9 @@ class AppModel(object):
         self._config = config_parser.RawConfigParser()
         self._config.read(self._config_file)
 
+    def get_config_file_path(self):
+        return self._config_file
+
     def get_config(self, sec, key):
         try:
             val = self._config.get(sec, key)
