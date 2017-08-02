@@ -101,29 +101,7 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
 
         The default editor used is the one specified in the software configuration file.
         """
-        # Stores a list of abilities that are already added to the list of file to edit;
-        # This variable is used to prevent infinite dependency import loops
-        imported_abilities = []
-        abilities = [self._ability]  # Stack of Abilities whose source file will be edited
-        files = set()  # List of files to be edited
-
-        while len(abilities) > 0:
-            ability = abilities.pop(0)
-
-            # Get this ability dependencies so that we fetch all dependencies recursively
-            new_abls = []
-            for dep in ability.get_dependencies().values():
-                pkg = self._module_factory.get_module_by_name(dep.package)
-                abl = type(pkg.get_ability_instance_by_name(dep.ability, self._module_factory))
-                if abl not in abilities and abl not in imported_abilities:
-                    new_abls.append(abl)
-            imported_abilities += new_abls
-            abilities += new_abls
-
-            # Get the source file of the current ability
-            fn = inspect.getsourcefile(ability)
-            files.add(fn)
-
+        files = self._ability.get_dep_file_paths(self._module_factory)
         try:
             editor = self._app_model.get_editor()
         except ex.ConfEditorNone as e:

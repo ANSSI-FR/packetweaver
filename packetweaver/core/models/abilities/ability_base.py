@@ -1,7 +1,7 @@
 import abc
 import collections
 import copy
-
+import inspect
 import packetweaver.core.models.abilities.ability_dependency
 import packetweaver.core.models.abilities.ability_info as ability_info
 import packetweaver.core.models.modules.module_factory
@@ -254,6 +254,36 @@ class AbilityBase(object):
     @classmethod
     def get_dependencies(cls):
         return copy.deepcopy(cls._internal_dependencies)
+
+    @classmethod
+    def get_dep_file_paths(self, module_factory):
+        """ Return the path of all the abilities the current ability depends on
+
+        :return: list of paths to the required abilities
+        """
+        # Stores a list of abilities that are already added to the list of file to edit;
+        # This variable is used to prevent infinite dependency import loops
+        imported_abilities = []
+        abilities = [self]  # Stack of Abilities whose source file will be edited
+        files = set()  # List of files to be edited
+
+        while len(abilities) > 0:
+            ability = abilities.pop(0)
+
+            # Get this ability dependencies so that we fetch all dependencies recursively
+            new_abls = []
+            for dep in ability.get_dependencies().values():
+                pkg = module_factory.get_module_by_name(dep.package)
+                abl = type(pkg.get_ability_instance_by_name(dep.ability, module_factory))
+                if abl not in abilities and abl not in imported_abilities:
+                    new_abls.append(abl)
+            imported_abilities += new_abls
+            abilities += new_abls
+
+            # Get the source file of the current ability
+            fn = inspect.getsourcefile(ability)
+            files.add(fn)
+        return files
 
     @classmethod
     def cls_get_dependency(cls, name, module_factory, params={}, **kwargs):
