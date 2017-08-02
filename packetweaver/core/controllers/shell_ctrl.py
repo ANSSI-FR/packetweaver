@@ -254,9 +254,32 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
             if t.startswith(line[before_arg + 1:endidx])
         ]
 
+    def _normalize_search_index(self, s):
+        """ Validate and normalize the entered search index
+
+        :param s: string passed to a command asking for a search index
+        :return: integer
+        """
+        if len(s) == 0:
+            return 1
+        else:
+            try:
+                return int(s)
+            except ValueError:
+                raise
+
     def _get_module_from_search_index(self, index):
-        """ Return the """
-        return self._module_list_model.get_module_by_last_search_id(index)
+        """
+
+        :param index: the parameters passed to a command awaiting for an index
+        :return:
+        """
+        try:
+            index_normalized = self._normalize_search_index(index)
+            return self._module_list_model.get_module_by_last_search_id(index_normalized)
+        except ValueError:
+            self._view.error('You must specify the ability index given by you last list/search command')
+            return
 
     def do_conf(self, s=''):
         """
@@ -288,16 +311,7 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
             > use     # a shortcut to > use 1
             > use 4
         """
-        # use <==> use 1
-        if len(s) == 0:
-            index = 1
-        else:
-            try:
-                index = int(s)
-            except ValueError:
-                self._view.error('You must specify the ability index given by you last list/search command')
-                return
-        ret = self._get_module_from_search_index(index)
+        ret = self._get_module_from_search_index(s)
         if isinstance(ret, type(None)):
             self._view.error('Unable to find the module. Did you perform a list/search command beforehand?')
             return
