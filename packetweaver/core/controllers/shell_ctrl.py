@@ -298,6 +298,25 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         self.do_shell('{} {}'.format(editor, conf_file_path))
         self._view.warning('Please restart the framework in order to apply your modifications.')
 
+    def do_editor(self, s=''):
+        """
+        Open the ability and its dependencies source files
+        in an editor using the last search index as
+        displayed by the last list/search command
+        """
+        ret = self._get_module_from_search_index(s)
+        if ret is None:
+            self._view.error('Unable to find the module. Did you perform a list/search command beforehand?')
+            return
+        module, selected_ability = ret
+        files = selected_ability.get_dep_file_paths(self._module_factory)
+        try:
+            editor = self._app_model.get_editor()
+        except ex.ConfEditorNone as e:
+            self._view.warning('{}'.format(e))
+            return
+        self.do_shell('{} {}'.format(editor, ' '.join(files)))
+
     def do_use(self, s=''):
         """
         Select the ability to load using its index
