@@ -27,6 +27,11 @@ class ConfEditor(Conf):
     pass
 
 
+class ConfEditorNone(Conf):
+    """ Warn about the fact no editor configuration has been specified """
+    pass
+
+
 class ConfEditorInvalid(ConfEditor):
     """ Warn about an invalid editor command in the Tools section of the framework configuration file"""
     pass

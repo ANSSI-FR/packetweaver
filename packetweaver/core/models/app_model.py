@@ -108,6 +108,13 @@ class AppModel(object):
                     subprocess.check_output(['which', editor])
                 except subprocess.CalledProcessError:
                     raise ex.ConfEditorInvalid('{} [{}] is not a valid editor'.format(self.err_header_editor, editor))
+            else:
+                raise ex.ConfEditorNone(
+                    'No editor configured. Please add one in your [{}] configuration file.{}'.format(
+                        self.get_config_file_path(),
+                        '\ne.g:\n    [Tools]\n    editor=vim'
+                    )
+                )
         except config_parser.NoSectionError:
             pass
         return editor

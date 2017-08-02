@@ -84,6 +84,10 @@ class AppCtrl(ctrl.Ctrl):
         # Check editor
         try:
             self._app_model.get_editor()
+        except ex.ConfEditorNone as e:
+            # not displaying warning if the editor is not specified
+            # self._view.warning('{}'.format(e))
+            pass
         except ex.ConfEditorInvalid as e:
             self._view.error('{}'.format(e))
             raise ex.ExitPw()

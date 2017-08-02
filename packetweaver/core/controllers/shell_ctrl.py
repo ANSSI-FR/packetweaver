@@ -290,14 +290,10 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         in order to apply your modifications. /!\
         """
         conf_file_path = self._app_model.get_config_file_path()
-        editor = self._app_model.get_editor()
-        if editor is None:
-            self._view.warning(
-                'No editor configured. Please add one in your [{}] configuration file.{}'.format(
-                    self._app_model.get_config_file_path(),
-                    '\ne.g:\n    [Tools]\n    editor=vim'
-                )
-            )
+        try:
+            editor = self._app_model.get_editor()
+        except ex.ConfEditorNone as e:
+            self._view.warning('{}'.format(e))
             return
         self.do_shell('{} {}'.format(editor, conf_file_path))
         self._view.warning('Please restart the framework in order to apply your modifications.')

@@ -9,6 +9,7 @@ import readline
 import traceback
 import packetweaver.libs.sys.path_handling as path_ha
 import packetweaver.core.views.text as output
+import packetweaver.core.controllers.exceptions as ex
 import packetweaver.core.views.view_interface as view_interface
 import packetweaver.core.models.abilities.ability_base as ability_base
 import packetweaver.core.models.modules.ability_module as abl_module
@@ -123,14 +124,10 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
             fn = inspect.getsourcefile(ability)
             files.add(fn)
 
-        editor = self._app_model.get_editor()
-        if editor is None:
-            self._view.warning(
-                'No editor configured. Please add one in your [{}] configuration file.{}'.format(
-                    self._app_model.get_config_file_path(),
-                    '\ne.g:\n    [Tools]\n    editor=vim'
-                )
-            )
+        try:
+            editor = self._app_model.get_editor()
+        except ex.ConfEditorNone as e:
+            self._view.warning('{}'.format(e))
             return
         self.do_shell('{} {}'.format(editor, ' '.join(files)))
         self.reload()
