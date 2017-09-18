@@ -96,6 +96,15 @@ is equivalent to::
     inst = self.get_dependency('mytest')
     inst.skill_level = 9000
 
+and this line::
+
+    inst = self.get_dependency('mytest', skill_level=9000, other_stat=10)
+
+is equivalent to::
+
+    inst = self.get_dependency('mytest')
+    inst.set_opts(skill_level=9000, other_stat=10)
+
 .. note:: If your parameter name contains characters that are invalid for a
     Python attribute name, you may set it using ``set_opt``::
         inst.set_opt('skill_level++', 9000)
