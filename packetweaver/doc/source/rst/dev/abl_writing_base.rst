@@ -449,6 +449,9 @@ want to be sure that you are not overwriting any existing file::
     ``writable`` and ``executable``, because the file does not exist, and does 
     not have any ACL (yet).
 
+Paths can be specified in an absolute or relative manner, the latter being interpreted
+starting from the ability's ability package root path.
+
 Text output
 -----------
 
