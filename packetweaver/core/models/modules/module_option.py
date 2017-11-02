@@ -414,8 +414,8 @@ class CallbackOpt(ModuleOption):
 
 
 class PathOpt(StrOpt):
-    def __init__(self, name, default=None, comment=None, optional=False,
-                 executable=None, must_exist=None, readable=None, writable=None, is_dir=False
+    def __init__(self, name, comment=None, optional=False,
+                 executable=None, must_exist=None, readable=None, writable=None, is_dir=False, **kwargs
                  ):
         """ Hold a path information
 
@@ -441,11 +441,14 @@ class PathOpt(StrOpt):
         self._readable = readable
         self._writable = writable
         self._is_dir = is_dir
-        if default is None:
+        if 'default' in kwargs:
+            default = kwargs['default']
+        else:
             if self._is_dir:
                 default = os.getcwd()
             else:
                 default = '/bin/true'
+
         super(PathOpt, self).__init__(name, default, comment, optional)
 
     def is_valid(self, v):
