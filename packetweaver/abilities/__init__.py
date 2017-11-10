@@ -9,6 +9,8 @@ from .osi.network_l3 import netfilter
 from .osi.phy_l1 import capture
 from .osi.phy_l1 import send_raw_pkts
 from .osi.phy_l1 import mitm
+from .osi.phy_l1 import read_pcap
+from .osi.phy_l1 import save_pcap
 from .osi.transport_l4 import tcp_client
 from .osi.transport_l4 import tcp_server
 from .osi.transport_l4 import tls_client
@@ -52,6 +54,8 @@ exported_abilities = [
     capture.Ability,
     send_raw_pkts.Ability,
     mitm.Ability,
+    read_pcap.Ability,
+    save_pcap.Ability,
     tcp_client.Ability,
     tcp_server.Ability,
     tls_client.Ability,
