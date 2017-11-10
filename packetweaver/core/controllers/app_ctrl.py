@@ -60,7 +60,7 @@ class AppCtrl(ctrl.Ctrl):
                 if path in sys.path:
                     self._view.warning('Path [{}] is declared several times in your dependencies'.format(path))
                 else:
-                    sys.path.append(path)
+                    sys.path.insert(0, path)
         except ex.ConfDep as e:
             self._view.error('{}'.format(e))
             raise ex.ExitPw()
