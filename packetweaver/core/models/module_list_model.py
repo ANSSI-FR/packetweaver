@@ -30,7 +30,6 @@ class ModuleListModel(object):
         self._ability_tags = set()
 
         self._refresh_module_list()
-        self.get_module_list()
 
     def get_module_by_last_search_id(self, id):
         """ Return a tuple containing a ModuleModel and an AbilityBase
@@ -78,6 +77,7 @@ class ModuleListModel(object):
         """
         last_search = []
         returned_list = []
+        self.reload()
         for pkg_path, abl_group in self._module_list.items():
             last_search += [
                 (pkg_path, abl)

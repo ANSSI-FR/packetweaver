@@ -380,12 +380,6 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         """ Used to prevent exiting the shell """
         return True
 
-    def do_reload(self, s=''):
-        """
-        Reload the current ability list
-        """
-        self._module_list_model.reload()
-
     def do_exit(self, s=''):
         """
         Exit the shell after saving the shell history
