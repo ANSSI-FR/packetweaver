@@ -56,6 +56,7 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         except ex.ConfNone:
             l_pkg = []
         self._module_list_model = module_list_model.ModuleListModel(l_pkg)
+        _ = self._module_list_model.get_module_list()  # load the search result indexes with default values
 
         signal.signal(signal.SIGINT, self._handle_ctrlc)
 
