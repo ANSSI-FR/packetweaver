@@ -13,6 +13,10 @@ class Ability(ns.ThreadedAbilityBase):
         ns.IpOpt(ns.OptNames.IP_DST, None, 'Destination IP', optional=True),
         ns.PortOpt(ns.OptNames.PORT_SRC, None, 'Source Port', optional=True),
         ns.PortOpt(ns.OptNames.PORT_DST, None, 'Destination Port', optional=True),
+        ns.OptionTemplateEntry(
+            lambda x: 0 == len([e for e in x.lower() if e not in "0123456789abcdef"]),
+            ns.StrOpt('ether_type', default='0800', comment='Filter by ether_type (hexa)', optional=True)
+        ),
         ns.ChoiceOpt(ns.OptNames.L4PROTOCOL, ['tcp', 'udp'], comment='L4 Protocol over IP', optional=True),
         ns.StrOpt('bridge', None, '''Specify the bridge to use for sniffing.
             If the bridge does not exist, it will be created
@@ -84,7 +88,7 @@ class Ability(ns.ThreadedAbilityBase):
 
         return True
 
-    def _build_bpf(self, mac_src, mac_dst, ip_src, ip_dst, proto, port_src, port_dst):
+    def _build_bpf(self, mac_src, mac_dst, ether_type, ip_src, ip_dst, proto, port_src, port_dst):
         """ Builds a BPF from the provided parameters
         :param mac_src: Source MAC address (may be None)
         :param mac_dst: Destination MAC address (may be None)
@@ -97,6 +101,8 @@ class Ability(ns.ThreadedAbilityBase):
         :return: the BPF expression as a string
         """
         bpf = set()
+        bpf.add('ether proto 0x{}'.format(ether_type))
+
         if self.bidirectional:
             if mac_src is not None and mac_dst is not None:
                 bpf.add('(ether src {} and ether dst {}) or (ether src {} and ether dst {})'.format(mac_src, mac_dst, mac_dst, mac_src))
@@ -143,7 +149,7 @@ class Ability(ns.ThreadedAbilityBase):
             return
 
         bpf_expr = self._build_bpf(
-            self.mac_src, self.mac_dst,
+            self.mac_src, self.mac_dst, self.ether_type,
             self.ip_src, self.ip_dst,
             self.protocol,
             self.port_src, self.port_dst
