@@ -196,10 +196,7 @@ class PrefixOpt(ModuleOption):
         raise StopIteration()
 
     def is_valid(self, v):
-        return (
-            ((v is None or v == 'None') and self.is_optional())
-            or (ipaddr_mgmt.is_a_valid_prefix(v) and not ipaddr_mgmt.is_a_valid_ip_address(v))
-        )
+        return ((v is None or v == 'None') and self.is_optional()) or (ipaddr_mgmt.is_a_valid_prefix(v))
 
     def generate_one_value(self, v):
         return self.iterate_over_a_prefix(v)

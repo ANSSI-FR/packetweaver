@@ -1,8 +1,12 @@
 # coding: utf8
 import os
-import scapy.layers.l2
-import scapy.utils
 import packetweaver.core.ns as ns
+try:
+    import scapy.layers.l2
+    import scapy.utils
+    HAS_SCAPY = True
+except ImportError:
+    HAS_SCAPY = False
 
 
 class Ability(ns.ThreadedAbilityBase):
@@ -36,3 +40,11 @@ class Ability(ns.ThreadedAbilityBase):
             pass
 
         pcapwr.close()
+
+    @classmethod
+    def check_preconditions(cls, module_factory):
+        l = []
+        if not HAS_SCAPY:
+            l.append('Scapy support missing or broken. Please install it or proceed to an update.')
+        l += super(Ability, cls).check_preconditions(module_factory)
+        return l
