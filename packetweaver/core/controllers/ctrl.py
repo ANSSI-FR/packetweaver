@@ -1,4 +1,5 @@
 # coding: utf8
+import packetweaver.core.controllers.exceptions as ex
 
 
 class Ctrl(object):
@@ -8,9 +9,12 @@ class Ctrl(object):
         pass
 
     def execute(self):
-        self.pre_process()
-        self.process()
-        self.post_process()
+        try:
+            self.pre_process()
+            self.process()
+            self.post_process()
+        except ex.ExitPw:
+            pass
 
     def pre_process(self):
         pass

@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 from contextlib import contextmanager
+import packetweaver.core.controllers.exceptions as ex
 import packetweaver.core.controllers.app_ctrl as appctrl
 
 
@@ -52,5 +53,8 @@ if __name__ == '__main__':
     # Change to the current directory to make relative path reference of internal files working (i.e: pw.ini)
     base_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
     with cd(base_dir):
-        app = appctrl.AppCtrl(args.config_filename, args, rem_args)
-        app.execute()
+        try:
+            app = appctrl.AppCtrl(args.config_filename, args, rem_args)
+            app.execute()
+        except ex.ExitPw():
+            pass

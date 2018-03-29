@@ -1,7 +1,7 @@
 import abc
 import collections
 import copy
-
+import inspect
 import packetweaver.core.models.abilities.ability_dependency
 import packetweaver.core.models.abilities.ability_info as ability_info
 import packetweaver.core.models.modules.module_factory
@@ -143,6 +143,18 @@ class AbilityBase(object):
         """
         self._options = {k: opt.get_value() for k, opt in opts.items()}
 
+    def set_opts(self, **kwargs):
+        """ Setup several arguments at the same time
+
+        :param kwargs: list of option_name='val' to affect to the abilitiy
+        @Raise Exception
+        """
+        for opt in kwargs:
+            try:
+                self.set_opt(opt, kwargs[opt])
+            except:
+                raise Exception('Invalid parameter')
+
     def set_opt(self, opt_name, opt_value):
         """ Set a value to a specific option and check
 
@@ -244,6 +256,36 @@ class AbilityBase(object):
         return copy.deepcopy(cls._internal_dependencies)
 
     @classmethod
+    def get_dep_file_paths(self, module_factory):
+        """ Return the path of all the abilities the current ability depends on
+
+        :return: list of paths to the required abilities
+        """
+        # Stores a list of abilities that are already added to the list of file to edit;
+        # This variable is used to prevent infinite dependency import loops
+        imported_abilities = []
+        abilities = [self]  # Stack of Abilities whose source file will be edited
+        files = set()  # List of files to be edited
+
+        while len(abilities) > 0:
+            ability = abilities.pop(0)
+
+            # Get this ability dependencies so that we fetch all dependencies recursively
+            new_abls = []
+            for dep in ability.get_dependencies().values():
+                pkg = module_factory.get_module_by_name(dep.package)
+                abl = type(pkg.get_ability_instance_by_name(dep.ability, module_factory))
+                if abl not in abilities and abl not in imported_abilities:
+                    new_abls.append(abl)
+            imported_abilities += new_abls
+            abilities += new_abls
+
+            # Get the source file of the current ability
+            fn = inspect.getsourcefile(ability)
+            files.add(fn)
+        return files
+
+    @classmethod
     def cls_get_dependency(cls, name, module_factory, params={}, **kwargs):
         if name not in cls._internal_dependencies:
             raise Exception('Unknown dependency: {}'.format(name))
@@ -302,8 +344,12 @@ class AbilityBase(object):
     def get_metadata(cls):
         return copy.deepcopy(cls._info)
 
-    def get_possible_values(self, opt_name, typed):
-        """
+    def get_possible_values(self, opt_name, typed, ref=None):
+        """ Get suggestion on possible values for an option
+
+        :param opt_name: name of the option
+        :param typed: begin of the text submit to the module_option in order to get completion suggestions
+        :param ref: custom data passed directly to the module_option by the ability
         @raise AssertionError
         """
         if opt_name not in type(self)._opt_hash:
@@ -311,10 +357,10 @@ class AbilityBase(object):
 
         opt = type(self)._opt_hash[opt_name]
         if isinstance(opt, module_option.ModuleOption):
-            return opt.get_possible_values(typed)
+            return opt.get_possible_values(typed, ref)
 
         assert (isinstance(opt, OptionTemplateEntry))
-        return opt.entry.get_possible_values(typed)
+        return opt.entry.get_possible_values(typed, ref)
 
     def is_a_valid_value_for_this_option(self, opt_name, value):
         if opt_name not in type(self)._opt_hash:

@@ -13,6 +13,10 @@ class Ability(ns.ThreadedAbilityBase):
         ns.IpOpt(ns.OptNames.IP_DST, None, 'Destination IP', optional=True),
         ns.PortOpt(ns.OptNames.PORT_SRC, None, 'Source Port', optional=True),
         ns.PortOpt(ns.OptNames.PORT_DST, None, 'Destination Port', optional=True),
+        ns.OptionTemplateEntry(
+            lambda x: 0 == len([e for e in x.lower() if e not in "0123456789abcdef"]),
+            ns.StrOpt('ether_type', default='0800', comment='Filter by ether_type (hexa)', optional=True)
+        ),
         ns.ChoiceOpt(ns.OptNames.L4PROTOCOL, ['tcp', 'udp'], comment='L4 Protocol over IP', optional=True),
         ns.StrOpt('bridge', None, '''Specify the bridge to use for sniffing.
             If the bridge does not exist, it will be created
@@ -22,6 +26,7 @@ class Ability(ns.ThreadedAbilityBase):
         the sender, but who knows?!). If the prefix values \\xFF, then the message is sent through the output interface.
         If no prefix are used and this option values False, then messages are always sent through the ouput interface.
         '''),
+        ns.BoolOpt('bidirectional', False, comment='Whether communications must be intercepted in one way or both ways.'),
         ns.BoolOpt('quiet', True, comment='Whether to log errors.'),
     ]
 
@@ -83,7 +88,7 @@ class Ability(ns.ThreadedAbilityBase):
 
         return True
 
-    def _build_bpf(self, mac_src, mac_dst, ip_src, ip_dst, proto, port_src, port_dst):
+    def _build_bpf(self, mac_src, mac_dst, ether_type, ip_src, ip_dst, proto, port_src, port_dst):
         """ Builds a BPF from the provided parameters
         :param mac_src: Source MAC address (may be None)
         :param mac_dst: Destination MAC address (may be None)
@@ -96,22 +101,46 @@ class Ability(ns.ThreadedAbilityBase):
         :return: the BPF expression as a string
         """
         bpf = set()
-        if not isinstance(mac_src, type(None)):
-            bpf.add('ether src {}'.format(mac_src))
-        if not isinstance(mac_dst, type(None)):
-            bpf.add('ether dst {}'.format(mac_dst))
-        if not isinstance(ip_src, type(None)):
-            bpf.add('src host {}'.format(ip_src))
-            bpf.add('ip or ip6')
-        if not isinstance(ip_dst, type(None)):
-            bpf.add('dst host {}'.format(ip_dst))
-            bpf.add('ip or ip6')
-        if not isinstance(proto, type(None)):
-            bpf.add(proto)
-        if not isinstance(port_src, type(None)):
-            bpf.add('src port {}'.format(port_src))
-        if not isinstance(port_dst, type(None)):
-            bpf.add('dst port {}'.format(port_dst))
+        bpf.add('ether proto 0x{}'.format(ether_type))
+
+        if self.bidirectional:
+            if mac_src is not None and mac_dst is not None:
+                bpf.add('(ether src {} and ether dst {}) or (ether src {} and ether dst {})'.format(mac_src, mac_dst, mac_dst, mac_src))
+            elif mac_src is not None and mac_dst is None:
+                bpf.add('ether {}'.format(mac_src))
+            elif mac_dst is not None and mac_src is None:
+                bpf.add('ether {}'.format(mac_src))
+            if ip_src is not None and ip_dst is not None:
+                bpf.add('(src host {} and dst host {}) or (src host {} and dst host {})'.format(ip_src, ip_dst, ip_dst, ip_src))
+            elif ip_src is not None and ip_dst is None:
+                bpf.add('host {}'.format(ip_src))
+            elif ip_dst is not None and ip_src is None:
+                bpf.add('host {}'.format(ip_dst))
+            if proto is not None:
+                bpf.add(proto)
+            if port_src is not None and port_dst is not None:
+                bpf.add('(src port {} and dst port {}) or (src port {} and dst port {})'.format(port_src, port_dst), port_dst, port_src)
+            elif port_src is not None and port_dst is None:
+                bpf.add('port {}'.format(port_src))
+            elif port_dst is not None and port_src is None:
+                bpf.add('port {}'.format(port_dst))
+        else:
+            if not isinstance(mac_src, type(None)):
+                bpf.add('ether src {}'.format(mac_src))
+            if not isinstance(mac_dst, type(None)):
+                bpf.add('ether dst {}'.format(mac_dst))
+            if not isinstance(ip_src, type(None)):
+                bpf.add('src host {}'.format(ip_src))
+                bpf.add('ip or ip6')
+            if not isinstance(ip_dst, type(None)):
+                bpf.add('dst host {}'.format(ip_dst))
+                bpf.add('ip or ip6')
+            if not isinstance(proto, type(None)):
+                bpf.add(proto)
+            if not isinstance(port_src, type(None)):
+                bpf.add('src port {}'.format(port_src))
+            if not isinstance(port_dst, type(None)):
+                bpf.add('dst port {}'.format(port_dst))
         return '({})'.format(') and ('.join(list(bpf)))
 
     def main(self):
@@ -120,7 +149,7 @@ class Ability(ns.ThreadedAbilityBase):
             return
 
         bpf_expr = self._build_bpf(
-            self.mac_src, self.mac_dst,
+            self.mac_src, self.mac_dst, self.ether_type,
             self.ip_src, self.ip_dst,
             self.protocol,
             self.port_src, self.port_dst

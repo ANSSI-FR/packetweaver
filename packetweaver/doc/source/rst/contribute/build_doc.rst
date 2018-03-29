@@ -71,8 +71,8 @@ You may build a UML representation of PacketWeaver core module using pyreverse.
 Similarly, the Makefile target is::
 
     make uml-core
-    xdg-open classes_pw_core.png
-    xdg-open packages_pw_core.png
+    xdg-open build/classes_pw_core.png
+    xdg-open build/packages_pw_core.png
 
 
 Building and cleaning everything

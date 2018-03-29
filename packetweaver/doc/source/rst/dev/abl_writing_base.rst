@@ -320,7 +320,7 @@ a subnet.
 When all IP addresses of the specified prefix are generated, the next
 cache bypass raises a ``StopIteration`` exception.
 
-Here follows an exemple of a ``PrefixOpt`` instanciation::
+Here follows an exemple of a ``PrefixOpt`` instantiation::
 
     PrefixOpt('MyPrefix', default='192.0.2.0/29', ordered=True)
 
@@ -363,7 +363,7 @@ Choice parameters
 
 Choice parameters represent alternatives from which you can select one value.
 The set of available choices is up to Ability developers, who must list them at
-instanciation of the ``ChoiceOpt`` class::
+instantiation of the ``ChoiceOpt`` class::
 
     ChoiceOpt('favorite_food', ['pizza', 'beer', 'greenStuff'])
 
@@ -448,6 +448,9 @@ want to be sure that you are not overwriting any existing file::
 .. caution:: ``must_exist=False`` is incompatible with ``readable``,
     ``writable`` and ``executable``, because the file does not exist, and does 
     not have any ACL (yet).
+
+Paths can be specified in an absolute or relative manner, the latter being interpreted
+starting from the ability's ability package root path.
 
 Text output
 -----------

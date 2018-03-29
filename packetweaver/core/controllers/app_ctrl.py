@@ -6,6 +6,8 @@ import os
 import select
 import signal
 import time
+import packetweaver.core.controllers.exceptions as ex
+import packetweaver.libs.sys.path_handling as path_ha
 import packetweaver.core.controllers.cmd_line_ctrl as cmd_line_ctrl
 import packetweaver.core.controllers.ctrl as ctrl
 import packetweaver.core.controllers.shell_ctrl as shell_ctrl
@@ -43,11 +45,52 @@ class AppCtrl(ctrl.Ctrl):
     def pre_process(self):
         """ Initialize the app
 
-        Add in pythonpath user specific dependencies (for source based python libraries)
-        Instantiate the correct controller using the first command line argument
+        The different information of the configuration files are processed:
+
+        - the application PYTHONPATH is setup with the specified dependency paths (must exist and be a directory)
+        - early test on the provided ability package paths (must exits and point out an abilities folder)
+
+        Then the appropriate controller is instantiated (command line or interactive) base on the command line argument
+
+        :raises: ExitPw if invalid values are detected
         """
-        # Load custom dependencies
-        sys.path += self._app_model.get_dependencies()
+        # Add to PYTHONPATH user specific dependencies
+        try:
+            for path in self._app_model.get_dependencies():
+                if path in sys.path:
+                    self._view.warning('Path [{}] is declared several times in your dependencies'.format(path))
+                else:
+                    sys.path.insert(0, path)
+        except ex.ConfDep as e:
+            self._view.error('{}'.format(e))
+            raise ex.ExitPw()
+        except ex.ConfDepNone:
+            pass
+
+        # Check if ability packages paths are valid
+        try:
+            l_pkg = []
+            for p in self._app_model.get_packages():
+                if p in l_pkg:
+                    self._view.warning('Package [{}] is inserted several times'.format(p))
+                else:
+                    l_pkg.append(p)
+        except ex.ConfPkg as e:
+            self._view.error('{}'.format(e))
+            raise ex.ExitPw()
+        except ex.ConfNone as e:
+            self._view.warning('{}'.format(e))
+
+        # Check editor
+        try:
+            self._app_model.get_editor()
+        except ex.ConfEditorNone as e:
+            # not displaying warning if the editor is not specified
+            # self._view.warning('{}'.format(e))
+            pass
+        except ex.ConfEditorInvalid as e:
+            self._view.error('{}'.format(e))
+            raise ex.ExitPw()
 
         # choose ctrl
         if self._cli_args.subcmd == 'interactive':

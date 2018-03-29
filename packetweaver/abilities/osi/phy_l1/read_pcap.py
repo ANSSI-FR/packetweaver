@@ -11,8 +11,7 @@ except ImportError:
 class Ability(ns.ThreadedAbilityBase):
     _option_list = [
         ns.PathOpt(
-            ns.OptNames.PATH_SRC, None,
-            'Pcap file from which the packets are read', must_exist=True, readable=True
+            ns.OptNames.PATH_SRC, comment='Pcap file from which the packets are read', must_exist=True, readable=True
         )
     ]
 

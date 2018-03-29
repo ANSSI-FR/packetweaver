@@ -5,7 +5,20 @@ import contextlib
 import packetweaver.libs.gen.pwcolor as pwc
 import packetweaver.core.views.view_interface as vi
 
+
 class Log(vi.ViewInterface):
+
+    colors = {
+        'help': '',
+        'info': '',
+        'success': 'green',
+        'warning': 'yellow',
+        'error': 'red',
+        'fail': 'cyan',
+        'debug': 'purple',
+        'progress': 'blue',
+    }
+
     def __init__(self, output=sys.stdout):
         """ View for text mode user interface
 
@@ -40,7 +53,7 @@ class Log(vi.ViewInterface):
         :param t: text to be displayed
         :param lf: if True, add a carriage return at the end (line feed)
         """
-        with Log.color('green', self._output):
+        with Log.color('success', self._output):
             self._output.write('{}{}'.format(t, '\n' if lf else ''))
 
     def warning(self, t, lf=True):
@@ -49,7 +62,7 @@ class Log(vi.ViewInterface):
         :param t: text to be displayed
         :param lf: if True, add a carriage return at the end (line feed)
         """
-        with Log.color('yellow', self._output):
+        with Log.color('warning', self._output):
             self._output.write('{}{}'.format(t, '\n' if lf else ''))
 
     def error(self, t, lf=True):
@@ -58,7 +71,7 @@ class Log(vi.ViewInterface):
         :param t: text to be displayed
         :param lf: if True, add a carriage return at the end (line feed)
         """
-        with Log.color('red', self._output):
+        with Log.color('error', self._output):
             self._output.write('{}{}'.format(t, '\n' if lf else ''))
 
     def fail(self, t, lf=True):
@@ -67,7 +80,7 @@ class Log(vi.ViewInterface):
         :param t: text to be displayed
         :param lf: if True, add a carriage return at the end (line feed)
         """
-        with Log.color('cyan', self._output):
+        with Log.color('fail', self._output):
             self._output.write('{}{}'.format(t, '\n' if lf else ''))
 
     def debug(self, t, lf=True):
@@ -76,7 +89,7 @@ class Log(vi.ViewInterface):
         :param t: text to be displayed
         :param lf: if True, add a carriage return at the end (line feed)
         """
-        with Log.color('purple', self._output):
+        with Log.color('debug', self._output):
             self._output.write('{}{}'.format(t, '\n' if lf else ''))
 
     def progress(self, t, lf=True):
@@ -85,7 +98,7 @@ class Log(vi.ViewInterface):
         :param t: text to be displayed
         :param lf: if True, add a carriage return at the end (line feed)
         """
-        with Log.color('blue', self._output):
+        with Log.color('progress', self._output):
             self._output.write('{}{}'.format(t, '\n' if lf else ''))
 
     def delimiter(self, title="", width=None, char="-"):
@@ -185,7 +198,7 @@ class Log(vi.ViewInterface):
         :param t: text to be displayed
         :param fd: the output stream
         """
-        fd.write(pwc.PWColor.colors[t])
+        fd.write(pwc.PWColor.colors[Log.colors[t]])
         yield
         fd.write(pwc.PWColor.ENDC)
         fd.flush()

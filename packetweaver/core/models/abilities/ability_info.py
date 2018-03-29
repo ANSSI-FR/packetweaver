@@ -47,9 +47,11 @@ class AbilityInfo(object):
         if len(self._description) > 0:
             l.append(('description', self._description))
         if len(self._authors) > 0:
-            l.append(('authors', ', '.join(self._authors)))
+            delimiter = '' if len(self._refs) == 1 else '\n- '
+            l.append(('authors', delimiter + delimiter.join(self._authors)))
         if len(self._refs) > 0:
-            l.append(('references', ', '.join(['|'.join(x) for x in self._refs])))
+            delimiter = '' if len(self._refs) == 1 else '\n- '
+            l.append(('references', delimiter + delimiter.join(['|'.join(x) for x in self._refs])))
         if len(self._diffusion) > 0:
             l.append(('diffusion', self._diffusion))
         if len(self._tags) > 0:

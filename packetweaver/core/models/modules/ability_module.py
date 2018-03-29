@@ -7,6 +7,7 @@ import sys
 import packetweaver.core.views.view_interface as view_interface
 import packetweaver.core.models.abilities.ability_base as ability_base
 import packetweaver.core.models.status as status
+import packetweaver.core.controllers.exceptions as ex
 import packetweaver.core.models.modules.module_factory
 if sys.version_info > (3, 0):
     # reload moved to imp in python3
@@ -28,8 +29,15 @@ class AbilityModule(object):
 
     def _list_opts(self):
         s = set()
-        for abl in self._mod.exported_abilities:
-            s.union(set(abl.get_option_list()))
+        try:
+            for abl in self._mod.exported_abilities:
+                s.union(set(abl.get_option_list()))
+        except AttributeError:
+            raise ex.Conf(
+                '\nYour [{}] package does not exist or does not have a valid "exported_abilities" setup in its abilities/__init__.py module.'.format(
+                    self._mod_path
+                )
+            )
         return s
 
     def set_default_options(self, opts):

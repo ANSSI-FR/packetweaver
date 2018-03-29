@@ -28,7 +28,7 @@ such pipes may be done like this::
 Once set up like this, the parent Ability may write into ``outputp`` and read
 from ``inputp2``.
 
-.. warning:: you cannot add pipes to an already started Abilitya hitherto.
+.. warning:: you cannot add pipes to an already started Ability hitherto.
 
 Reading and writing from an Ability
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

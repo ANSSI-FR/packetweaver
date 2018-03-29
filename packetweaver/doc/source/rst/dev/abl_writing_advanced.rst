@@ -85,7 +85,7 @@ Configuring an Ability Instance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Parameters of Abilities that are not yet started may be set either at
-instanciation time, with the keyword arguments of the ``get_dependency`` call or
+instantiation time, with the keyword arguments of the ``get_dependency`` call or
 by directly setting them as attributes of the object instance of that Ability.
 Said otherwise, this line::
 
@@ -96,11 +96,20 @@ is equivalent to::
     inst = self.get_dependency('mytest')
     inst.skill_level = 9000
 
+and this line::
+
+    inst = self.get_dependency('mytest', skill_level=9000, other_stat=10)
+
+is equivalent to::
+
+    inst = self.get_dependency('mytest')
+    inst.set_opts(skill_level=9000, other_stat=10)
+
 .. note:: If your parameter name contains characters that are invalid for a
     Python attribute name, you may set it using ``set_opt``::
         inst.set_opt('skill_level++', 9000)
 
-Once started, trying to alter a paramter value leads to an Exception being
+Once started, trying to alter a parameter value leads to an Exception being
 raised.
 
 Starting the Dependency
@@ -115,7 +124,7 @@ you may run it by calling the ``start`` method on it::
             instance = self.get_dependency('mytest')
             instance.start()
 
-If arguments are passed to the start invokation, they are passed as is to the
+If arguments are passed to the start invocation, they are passed as is to the
 ``main`` method of that Ability. For instance, let's assume that the *Test your
 might* Ability ``main`` method is declared as::
 
@@ -127,7 +136,7 @@ One could call that Ability with arguments like this::
 
 Whether to use arguments with the ``start`` method or using PacketWeaver
 ``_option_list`` parameters is up to the Ability developer. One case where using
-the ``start`` argument is convinient is when one want to pass a data type that
+the ``start`` argument is convenient is when one want to pass a data type that
 is not declared as a PacketWeaver option type, or when the value is an arbitrary
 mutable Python object reference. In the latter case, a special argument should
 be passed during ``start`` invokation, to prevent deepcopy of the parameter

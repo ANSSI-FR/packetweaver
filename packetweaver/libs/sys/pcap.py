@@ -8,15 +8,18 @@ import threading
 import multiprocessing
 
 def capture_thread(stop_evt, pkts_pipe, iface, bpf=None):
-    h = pcapy.open_live(iface, 65535, 1, 1)
-    if not isinstance(bpf, type(None)):
-        h.setfilter(bpf)
+    try:
+        h = pcapy.open_live(iface, 65535, 1, 1)
+        if not isinstance(bpf, type(None)):
+            h.setfilter(bpf)
 
-    while not stop_evt.is_set():
-        hdr, payld = h.next()
-        if not isinstance(hdr, type(None)):
-            pkts_pipe.send(payld)
-    h = None
+        while not stop_evt.is_set():
+            hdr, payld = h.next()
+            if not isinstance(hdr, type(None)):
+                pkts_pipe.send(payld)
+        h = None
+    except(EOFError, IOError):
+        stop_evt.set()
 
 
 def start_capture(iface, bpf=None, in_pkt_pipe=None):

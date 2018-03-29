@@ -1,6 +1,7 @@
 # coding: utf8
 import abc
 import copy
+import packetweaver.libs.sys.path_handling as path_hand
 import packetweaver.core.models.modules.module_factory as module_factory
 import packetweaver.core.models.abilities.ability_base as ability_base
 import packetweaver.core.views.view_interface as view_interface
@@ -29,7 +30,6 @@ class ModuleListModel(object):
         self._ability_tags = set()
 
         self._refresh_module_list()
-        self.get_module_list()
 
     def get_module_by_last_search_id(self, id):
         """ Return a tuple containing a ModuleModel and an AbilityBase
@@ -77,12 +77,27 @@ class ModuleListModel(object):
         """
         last_search = []
         returned_list = []
+        self.reload()
         for pkg_path, abl_group in self._module_list.items():
             last_search += [
                 (pkg_path, abl)
                 for abl in abl_group
             ]
             returned_list += abl_group
+
+        # Detect duplicated ability names
+        l_abl_names = []
+        for path, abl in last_search:
+            if abl.get_name() not in l_abl_names:
+                l_abl_names.append(abl.get_name())
+            else:
+                self._view.warning(
+                    'An ability name should not be reused. Please specify another name for one of the [{}] ability.'.format(
+                        abl.get_name()
+                    )
+                )
+                raise AssertionError
+
         self._last_search_results = last_search
         return returned_list
 
@@ -133,5 +148,5 @@ class ModuleListModel(object):
         """
         searched_path = [limit] if limit is not None else self._paths
         for pkg_path in searched_path:
-            m = module_factory.ModuleFactory.get_module(pkg_path, self._view)
+            m = module_factory.ModuleFactory.get_module(path_hand.get_abs_path(pkg_path), self._view)
             self._module_list[pkg_path] = m.get_standalone_abilities()

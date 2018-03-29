@@ -117,7 +117,7 @@ class ModuleOptionWithPossibleValues(ModuleOption):
         self._rng = rng
 
     @classmethod
-    def get_possible_values(cls, typed=None):
+    def get_possible_values(cls, typed=None, ref=None):
         """ List all the possible values, whose name starts with "typed"
 
         :param typed: beginning of the name of a possible value (used for completion)
@@ -265,7 +265,7 @@ class ChoiceOpt(ModuleOption):
             super(ChoiceOpt, self).__init__(name, default, comment, optional)
             assert self.is_valid(default)
 
-    def get_possible_values(self, typed=None):
+    def get_possible_values(self, typed=None, ref=None):
         l = copy.deepcopy(self._possible_val)
         return [i for i in l if typed is None or i.startswith(typed)]
 
@@ -414,14 +414,13 @@ class CallbackOpt(ModuleOption):
 
 
 class PathOpt(StrOpt):
-    def __init__(self, name, default=None, comment=None, optional=False,
-                 executable=None, must_exist=None, readable=None, writable=None, is_dir=False
+    def __init__(self, name, comment=None, optional=False,
+                 executable=None, must_exist=None, readable=None, writable=None, is_dir=False, **kwargs
                  ):
         """ Hold a path information
 
         Several options can put constraints on the specified file.
         TODO: implement constraints on folder
-        TODO: handle relative path to the current package
 
         :param name: option name
         :param default: a path suiting the file attribute arguments
@@ -442,11 +441,14 @@ class PathOpt(StrOpt):
         self._readable = readable
         self._writable = writable
         self._is_dir = is_dir
-        if default is None:
+        if 'default' in kwargs:
+            default = kwargs['default']
+        else:
             if self._is_dir:
                 default = os.getcwd()
             else:
                 default = '/bin/true'
+
         super(PathOpt, self).__init__(name, default, comment, optional)
 
     def is_valid(self, v):
@@ -478,19 +480,19 @@ class PathOpt(StrOpt):
         return bool(ret)
 
     @classmethod
-    def get_possible_values(cls, typed):
+    def get_possible_values(cls, typed, ref=None):
+        base_path = os.path.abspath(ref) if ref else os.getcwd()
         if len(typed) == 0:
-            searched = os.getcwd()
+            searched = base_path
             bs = ''
         else:
             searched = os.path.dirname(typed)
             if len(searched) == 0:
-                searched = os.getcwd()
+                searched = base_path
             bs = os.path.basename(typed)
-
         l = [
             p + os.path.sep if os.path.isdir(os.path.join(searched, p)) else p
-            for p in os.listdir(searched)
+            for p in os.listdir(os.path.join(base_path, searched))
             if len(bs) == 0 or p.startswith(bs)
         ]
         return l

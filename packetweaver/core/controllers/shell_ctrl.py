@@ -4,6 +4,8 @@ import re
 import cmd
 import signal
 import readline
+import traceback
+import packetweaver.core.controllers.exceptions as ex
 import packetweaver.libs.gen.pwcolor as pwc
 import packetweaver.core.models.module_list_model as module_list_model
 import packetweaver.core.models.modules.module_factory as module_factory
@@ -30,6 +32,7 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         """
         super(ShellCtrl, self).__init__()
 
+        self._view = view
         # documentation view customization
         self.ruler = "="
         self.doc_header = "Documented commands (type help <topic>):"
@@ -41,19 +44,19 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         self._search_or_opt_name = '-o'
 
         self.prompt = self._app_model.app_prompt_l1
-
-        self._history_path = self._app_model.get_config('Internals', 'HistFile')
-        if self._history_path is None:
-            self._history_path = '~/.pwhistory'
-        self._history_path = os.path.expanduser(self._history_path)
         try:
-            readline.read_history_file(self._history_path)
-        except IOError:
-            if not os.path.isfile(self._history_path):
-                open(self._history_path, "w").close()  # touch file
+            self._history_path = self._app_model.get_hist_file_path()
+        except ex.ConfHistFileNotAccessible as e:
+            self._view.error('{}'.format(e))
+            raise ex.ExitPw()
+        readline.read_history_file(self._history_path)
 
-        self._module_list_model = module_list_model.ModuleListModel(self._app_model.get_packages())
-        self._view = view
+        try:
+            l_pkg = self._app_model.get_packages()
+        except ex.ConfNone:
+            l_pkg = []
+        self._module_list_model = module_list_model.ModuleListModel(l_pkg)
+        _ = self._module_list_model.get_module_list()  # load the search result indexes with default values
 
         signal.signal(signal.SIGINT, self._handle_ctrlc)
 
@@ -125,6 +128,8 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         Example:
             > shell python
             > !ip a
+
+        The current directory is on your PacketWeaver pw.py file.
         """
         os.system(s)
 
@@ -250,9 +255,68 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
             if t.startswith(line[before_arg + 1:endidx])
         ]
 
+    def _normalize_search_index(self, s):
+        """ Validate and normalize the entered search index
+
+        :param s: string passed to a command asking for a search index
+        :return: integer
+        """
+        if len(s) == 0:
+            return 1
+        else:
+            try:
+                return int(s)
+            except ValueError:
+                raise
+
     def _get_module_from_search_index(self, index):
-        """ Return the """
-        return self._module_list_model.get_module_by_last_search_id(index)
+        """
+
+        :param index: the parameters passed to a command awaiting for an index
+        :return:
+        """
+        try:
+            index_normalized = self._normalize_search_index(index)
+            return self._module_list_model.get_module_by_last_search_id(index_normalized)
+        except ValueError:
+            self._view.error('You must specify the ability index given by you last list/search command')
+            return
+
+    def do_conf(self, s=''):
+        """
+        Open the PacketWeaver configuration file
+        in your editor.
+
+        /!\ You will have to restart the framework
+        in order to apply your modifications. /!\
+        """
+        conf_file_path = self._app_model.get_config_file_path()
+        try:
+            editor = self._app_model.get_editor()
+        except ex.ConfEditorNone as e:
+            self._view.warning('{}'.format(e))
+            return
+        self.do_shell('{} {}'.format(editor, conf_file_path))
+        self._view.warning('Please restart the framework in order to apply your modifications.')
+
+    def do_editor(self, s=''):
+        """
+        Open the ability and its dependencies source files
+        in an editor using the last search index as
+        displayed by the last list/search command
+        """
+        ret = self._get_module_from_search_index(s)
+        if ret is None:
+            self._view.error('Unable to find the module. Did you perform a list/search command beforehand?')
+            return
+        module, selected_ability = ret
+        files = selected_ability.get_dep_file_paths(self._module_factory)
+        try:
+            editor = self._app_model.get_editor()
+        except ex.ConfEditorNone as e:
+            self._view.warning('{}'.format(e))
+            return
+        self.do_shell('{} {}'.format(editor, ' '.join(files)))
 
     def do_use(self, s=''):
         """
@@ -263,16 +327,7 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
             > use     # a shortcut to > use 1
             > use 4
         """
-        # use <==> use 1
-        if len(s) == 0:
-            index = 1
-        else:
-            try:
-                index = int(s)
-            except ValueError:
-                self._view.error('You must specify the ability index given by you last list/search command')
-                return
-        ret = self._get_module_from_search_index(index)
+        ret = self._get_module_from_search_index(s)
         if isinstance(ret, type(None)):
             self._view.error('Unable to find the module. Did you perform a list/search command beforehand?')
             return
@@ -301,6 +356,7 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
             self._view.error("The module cannot be found, make sure it exists and is in a python package (__init__.py)")
             return
         except:
+            traceback.print_exc()
             self._view.error("> Module could not be loaded, please check the previous error message")
             return
 
@@ -310,22 +366,20 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
 
         while 1:
             try:
+                prev_dir = os.getcwd()
+                os.chdir(u.get_pkg_abs_path())
                 u.cmdloop()
             except kbd_exception.CtrlD:
                 self._view.info("")
                 break
             except kbd_exception.CtrlC:
                 pass
+            finally:
+                os.chdir(prev_dir)
 
     def can_exit(self):
         """ Used to prevent exiting the shell """
         return True
-
-    def do_reload(self, s=''):
-        """
-        Reload the current ability list
-        """
-        self._module_list_model.reload()
 
     def do_exit(self, s=''):
         """

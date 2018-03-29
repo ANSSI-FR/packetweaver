@@ -31,8 +31,12 @@ def bridge_iface_together(*args, **kwargs):
     :return:
     """
     with pyroute2.IPDB() as ipdb:
+        name = ""
         if 'bridge' in kwargs and not isinstance(kwargs['bridge'], type(None)):
-            br = ipdb.interfaces[kwargs['bridge']]
+            if kwargs['bridge'] in ipdb.interfaces:
+                br = ipdb.interfaces[kwargs['bridge']]
+            else:
+                name = kwargs['bridge']
         else:
             # Get a new bridge identifier
             l = ([int(x[len('pwbr'):]) for x in ipdb.interfaces.keys() if isinstance(x,str) and x.startswith('pwbr')])
@@ -40,11 +44,17 @@ def bridge_iface_together(*args, **kwargs):
                 i = 0
             else:
                 i = max(l) + 1
-            br = ipdb.create(kind='bridge', ifname='pwbr{}'.format(i))
+            name = 'pwbr{}'.format(i)
+
+        if len(name) > 0:
+            br = ipdb.create(kind='bridge', ifname=name)
             br.up()
+            ipdb.commit()
+
         # Create the new bridge and add the two interfaces in it
         for a in args:
             br.add_port(a)
+
         ipdb.commit()
         return br.ifname
 

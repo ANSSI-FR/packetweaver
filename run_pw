@@ -1,9 +1,45 @@
-#!/bin/sh
+#!/bin/bash
 VM=python
 PW_PATH=$(dirname $(realpath $0))
+NEW_PYTHONPATH=${PW_PATH}:${PYTHONPATH}
+# supported argument to run tests
+TEST="test"
+ALL="all"
+UTEST="utest"
+COV="--cov"
+DEBUG="--pdb"
 
-if [ $# -gt 0 ] ; then
-	PYTHONPATH=${PW_PATH} ${VM} ${PW_PATH}/packetweaver/pw.py $@
-else
-	PYTHONPATH=${PW_PATH} ${VM} ${PW_PATH}/packetweaver/pw.py interactive $@
+# ---------------- Test optional parameters ----------------
+# take into account pytest specific options
+PYTEST="py.test"
+OPT=""
+for param in $@; do
+    if [ ${param} == ${COV} ]; then
+        OPT="${OPT} --cov=packetweaver"
+    elif [ ${param} == ${DEBUG} ]; then
+        OPT="${OPT} --pdb"
+    fi
+done
+
+# define tests to be run
+run_utest(){
+    # run unit tests of the core (py.test)
+    # cd in the right directory, making use of the pytest.ini
+    cd packetweaver
+    PYTHONPATH=${NEW_PYTHONPATH} ${PYTEST} ${OPT} ${PW_PATH}/$tests/
+    cd ..
+}
+
+# --------------------------- Run --------------------------
+if [ -z "$*" ]; then
+	PYTHONPATH=${NEW_PYTHONPATH} ${VM} ${PW_PATH}/packetweaver/pw.py interactive
+elif [ $# -gt 0 ] ; then
+	if [ $1 == ${TEST} ] ; then
+        # run tests if first argument is "test"
+        run_utest
+    else
+        # run the CLI with provided parameters
+        PYTHONPATH=${NEW_PYTHONPATH} ${VM} ${PW_PATH}/packetweaver/pw.py $@
+    fi
 fi
+

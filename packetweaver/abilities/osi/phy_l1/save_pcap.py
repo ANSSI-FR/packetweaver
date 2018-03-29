@@ -1,4 +1,5 @@
 # coding: utf8
+import os
 import scapy.layers.l2
 import scapy.utils
 import packetweaver.core.ns as ns
@@ -6,7 +7,7 @@ import packetweaver.core.ns as ns
 
 class Ability(ns.ThreadedAbilityBase):
     _option_list = [
-        ns.PathOpt(ns.OptNames.PATH_DST, None, 'File to write the pcap to', must_exist=False)
+        ns.PathOpt(ns.OptNames.PATH_DST, default=os.tempnam(), comment='File to write the pcap to', must_exist=False)
     ]
 
     _info = ns.AbilityInfo(
