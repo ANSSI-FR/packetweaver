@@ -6,7 +6,7 @@ FROM debian:stable
 
 # install all known dependencies
 RUN apt-get update \
-&& apt-get upgrade \
+&& apt-get upgrade -y \
 && apt-get install -y vim git python python-pip graphviz python-ipaddress python-pyroute2 python-gmpy2 python-pcapy python-scapy
 RUN pip install sphinx pylint sphinx_rtd_theme
 
