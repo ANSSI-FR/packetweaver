@@ -228,7 +228,12 @@ class MacOpt(ModuleOptionWithPossibleValues):
         )
 
 
-class BoolOpt(ModuleOption):
+class BoolOpt(ModuleOptionWithPossibleValues):
+    _possible_val = {
+        'True': lambda: 'True',
+        'False': lambda: 'False'
+    }
+
     def __init__(self, name, default=False, comment=None, optional=False):
         super(BoolOpt, self).__init__(name, default=default, comment=comment, optional=optional)
 
