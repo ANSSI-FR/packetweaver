@@ -132,7 +132,7 @@ obtained with the ``howto`` command::
     ...
     the real DNS server is connected to a different card than the victim.
 
-The ``options`` command lists the Ability parameters that may be set before
+The ``options`` command (or its alias ``ls``) lists the Ability parameters that may be set before
 running that Ability::
     
     pw (DNSProxy)> options
