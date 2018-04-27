@@ -306,6 +306,8 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
 
         self._view.delimiter()
 
+    do_ls = do_options
+
     def do_info(self, s=''):
         """
         Display ability's information
