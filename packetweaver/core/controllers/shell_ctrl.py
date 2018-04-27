@@ -376,6 +376,7 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
                 pass
             finally:
                 os.chdir(prev_dir)
+                _ = self._module_list_model.get_module_list()  # refresh modules list
 
     def can_exit(self):
         """ Used to prevent exiting the shell """
