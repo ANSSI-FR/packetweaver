@@ -1,16 +1,27 @@
+import packetweaver.libs.six as six
 try:
     import ipaddress
 
     def is_a_valid_ip_address(s):
         try:
-            ipaddress.ip_address(s.decode("utf8"))
+            if six.PY2:
+                ipaddress.ip_address(s.decode("utf8"))
+            elif six.PY3:
+                ipaddress.ip_address(s)
+            else:
+                print("Unknown python v. while checking IP option validity with ipaddress")
             return True
         except:
             return False
 
 
     def get_network_object(prefix):
-        u = prefix.decode('utf8')
+        if six.PY2:
+            u = prefix.decode("utf8")
+        elif six.PY3:
+            u = prefix
+        else:
+            print("Unknown python v. while checking network object validity with ipaddress")
         try:
             return ipaddress.IPv4Network(u, strict=False)
         except (ValueError, ipaddress.AddressValueError, ipaddress.NetmaskValueError):
