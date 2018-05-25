@@ -107,7 +107,7 @@ class AbilityBase(object):
         self._view = view
         self._cached_opt_values = {}
         self._alive = True
-        self._started = False
+        self._started_status = False
         self._set_default_opts(default_opts)
 
     def _set_default_opts(self, default_opts=None):
@@ -411,7 +411,7 @@ class AbilityBase(object):
         return not self._alive
 
     def _is_started(self):
-        return self._started
+        return self._started_status
 
     def howto(self):
         self._view.help('No howto was defined for this ability yet.')
@@ -436,11 +436,11 @@ class AbilityBase(object):
     """
 
     def start(self, *args, **kwargs):
-        self._started = True
+        self._started_status = True
         try:
             self._ret_value = self.main(*args, **kwargs)
         finally:
-            self._started = False
+            self._started_status = False
 
     def stop(self):
         self._alive = False

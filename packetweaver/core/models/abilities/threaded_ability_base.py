@@ -14,7 +14,7 @@ class ThreadedAbilityBase(threading.Thread, ability_base.AbilityBase):
         self._builtin_in_pipes = []
         self._builtin_out_pipes = []
         self._ret_value = None
-        self._started = False
+        self._started_status = False
 
     def _wait(self):
         self._stop_condition.acquire()
@@ -38,7 +38,7 @@ class ThreadedAbilityBase(threading.Thread, ability_base.AbilityBase):
             self._args = args
             self._kwargs = kwargs
 
-        self._started = True
+        self._started_status = True
         threading.Thread.start(self)
 
     def run(self):
@@ -51,7 +51,7 @@ class ThreadedAbilityBase(threading.Thread, ability_base.AbilityBase):
                 for out in self._builtin_out_pipes:
                     out.close()
         finally:
-            self._started = False
+            self._started_status = False
 
     def result(self):
         if self._ret_value is not None:
