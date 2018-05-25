@@ -11,7 +11,8 @@ except ImportError:
 
 class Ability(ns.ThreadedAbilityBase):
     _option_list = [
-        ns.PathOpt(ns.OptNames.PATH_DST, default=os.tempnam(), comment='File to write the pcap to', must_exist=False)
+        ns.PathOpt(ns.OptNames.PATH_DST, default=None, comment='File to write the pcap to',
+                   must_exist=False, optional=True)
     ]
 
     _info = ns.AbilityInfo(

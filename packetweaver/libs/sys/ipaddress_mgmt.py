@@ -51,39 +51,10 @@ try:
             return str(ipaddress.IPv6Address(int(net_obj.network_address) + n))
 
 except ImportError:
-    try:
-        import netaddr
+    print("Cannot verify IP addresses format! Please install ipaddress or use python 3")
 
-        def is_a_valid_ip_address(s):
-            try:
-                netaddr.IPAddress(s)
-                return True
-            except:
-                return False
+    def is_a_valid_ip_address(s):
+        return True
 
-
-        def is_a_valid_prefix(s):
-            if s is None:
-                return False
-            try:
-                p = netaddr.IPNetwork(s)
-                return True
-            except netaddr.core.AddrFormatError:
-                return False
-
-
-        def get_ip_count_in_prefix(prefix):
-            net_obj = netaddr.IPNetwork(prefix)
-            return net_obj.size - 2
-
-        def get_nth_ip_in_prefix(prefix, n):
-            return str(netaddr.IPAddress(int(netaddr.IPNetwork(prefix).first) + n + 1))
-
-    except ImportError:
-        print("Cannot verify IP addresses format! Please install either Python ipaddress or netaddr modules")
-
-        def is_a_valid_ip_address(s):
-            return True
-
-        def is_a_valid_prefix(s):
-            return True
+    def is_a_valid_prefix(s):
+        return True

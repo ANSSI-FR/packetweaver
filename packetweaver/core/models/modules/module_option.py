@@ -13,7 +13,7 @@ try:
 except ImportError:
     HAS_CYCLIC_RNG = False
 
-# Check if pyroute2 or ipaddress are available and activate the corresponding functionality if yes
+# Check if pyroute2 or is available and activate the corresponding functionality if yes
 try:
     import pyroute2
 
@@ -21,31 +21,6 @@ try:
 except ImportError:
     print("Cannot verify NIC interfaces existence! Please install pyroute2")
     HAS_PYROUTE2 = False
-
-try:
-    import ipaddress
-
-    def is_a_valid_ip_address(s):
-        try:
-            ipaddress.ip_address(s.decode("utf8"))
-            return True
-        except:
-            return False
-except ImportError:
-    try:
-        import netaddr
-
-        def is_a_valid_ip_address(s):
-            try:
-                netaddr.IPAddress(s)
-                return True
-            except:
-                return False
-    except ImportError:
-        print("Cannot verify IP addresses format! Please install either Python ipaddress or netaddr modules")
-
-        def is_a_valid_ip_address(s):
-            return True
 
 
 class ModuleOption(object):
