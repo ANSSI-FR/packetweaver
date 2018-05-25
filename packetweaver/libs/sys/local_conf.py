@@ -27,6 +27,6 @@ def get_local_net_conf(iface):
 
 if __name__ == '__main__':
     try:
-        print get_local_net_conf('eno1')
+        print(get_local_net_conf('eno1'))
     except ValueError as e:
-        print "{}".format(e)
+        print("{}".format(e))

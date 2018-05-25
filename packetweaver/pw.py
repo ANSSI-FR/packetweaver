@@ -56,5 +56,5 @@ if __name__ == '__main__':
         try:
             app = appctrl.AppCtrl(args.config_filename, args, rem_args)
             app.execute()
-        except ex.ExitPw():
+        except ex.ExitPw:
             pass

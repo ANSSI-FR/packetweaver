@@ -281,7 +281,7 @@ class Ability(ns.ThreadedAbilityBase):
                         return verdict
             return None
         except Exception as e:
-            print e
+            print(e)
             return None
 
     def _handle_query(self, metadata, data, fz, pz):

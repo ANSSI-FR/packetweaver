@@ -78,6 +78,6 @@ class Ability(ns.ThreadedAbilityBase):
                     except:
                         if not self.quiet:
                             self._view.error('Unparsable frame. Dropping: ' + str(e))
-                            print s
+                            print(s)
         except (IOError, EOFError):
             pass
