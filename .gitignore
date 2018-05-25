@@ -5,4 +5,6 @@
 *.so
 packetweaver/doc/source/apidoc/
 packetweaver/doc/build/
+.tox/
+.pytest_cache/
 *~
