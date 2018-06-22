@@ -4,7 +4,6 @@ import os
 import re
 import copy
 import random
-import packetweaver.libs.six as six
 import packetweaver.libs.gen.rand_draw as draw
 import packetweaver.libs.sys.ipaddress_mgmt as ipaddr_mgmt
 try:
@@ -327,13 +326,7 @@ class NumOpt(ModuleOptionWithPossibleValues):
         return ok
 
     def generate_one_value(self, s):
-        if six.PY2:
-            accepted_types = (int, long, float)
-        elif six.PY3:
-            accepted_types = (int, float)
-        else:
-            print('Failed identifying python v. for NumOpt gen one value')
-            return super(NumOpt, self).generate_one_value(s)
+        accepted_types = (int, float)
 
         if isinstance(s, type(None)):
             return None
@@ -360,13 +353,7 @@ class PortOpt(NumOpt):
         super(PortOpt, self).__init__(name, default=default, comment=comment, optional=optional, rng=rng)
 
     def is_valid(self, v):
-        if six.PY2:
-            accepted_types = (int, long)
-        elif six.PY3:
-            accepted_types = (int,)
-        else:
-            print('Failed identifying python v. for PortOpt is_valid check')
-
+        accepted_types = (int,)
         try:
             return (
                 (self.is_optional() and (v is None or v == 'None'))
