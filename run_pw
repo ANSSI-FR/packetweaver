@@ -1,5 +1,5 @@
 #!/bin/bash
-VM=python
+VM=${PYTHON:-python3}
 PW_PATH=$(dirname $(realpath $0))
 NEW_PYTHONPATH=${PW_PATH}:${PYTHONPATH}
 
