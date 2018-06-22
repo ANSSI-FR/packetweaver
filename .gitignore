@@ -1,10 +1,12 @@
 *.pyc
 *.pyo
 *.swp
-.pwhistory
 *.so
-packetweaver/doc/source/apidoc/
-packetweaver/doc/build/
+.pwhistory
+.coverage
 .tox/
 .pytest_cache/
+htmlcov/
+packetweaver/doc/source/apidoc/
+packetweaver/doc/build/
 *~
