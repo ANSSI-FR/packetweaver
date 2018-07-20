@@ -12,7 +12,9 @@ def get_local_net_conf(iface):
     re_mac = r'.*link/ether\s(?P<mac>[0-9a-f]{2}(?::[0-9a-f]{2}){5}).*'
 
     try:
-        r = subprocess.check_output(['ip', 'address', 'show', iface]).replace('\n', ' ')
+        r = subprocess.check_output(
+            ['ip', 'address', 'show', iface]
+        ).replace('\n', ' ')
     except subprocess.CalledProcessError as e:
         raise ValueError('{}'.format(e))
 
@@ -22,7 +24,9 @@ def get_local_net_conf(iface):
     if r_ip and r_mac:
         return {'ip': r_ip.group('ip'), 'mac': r_mac.group('mac')}
     else:
-        raise ValueError('Could not extract ip/mac information from the "ip address show {}" command'.format(iface))
+        raise ValueError(
+            'Could not extract ip/mac information from '
+            'the "ip address show {}" command'.format(iface))
 
 
 if __name__ == '__main__':

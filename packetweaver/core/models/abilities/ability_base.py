@@ -14,11 +14,15 @@ import packetweaver.core.views.text as output
 OptionTemplateEntry = collections.namedtuple(
     'OptionTemplateEntry', ['validator', 'entry']
 )
-""" OptionTemplateEntry is the definition of one of the options of this ability
-The validator is a callable that returns a boolean. True means that the provided
-value follows a suitable format for this entry. validator receives two parameters:
-the first one is the ModuleOption instance received provided in the template and
-the second one is the value to validate
+
+"""
+OptionTemplateEntry is the definition of one of the options of this ability.
+The validator is a callable that returns a boolean. True means that the
+provided value follows a suitable format for this entry.
+
+Validator receives two parameters:
+- the ModuleOption instance received provided in the template
+- the value to validate
 """
 
 
@@ -42,10 +46,10 @@ class AbilityBase(object):
     _dependencies = []
     _internal_dependencies = None
     """:var _option_list: defines the list of options for this ability and
-    the default values ; an entry in this dict can either be a plain ModuleOption
-    or a OptionTemplateEntry. The difference is in the validation. If it is a
-    ModuleOption, a call to the is_valid method is performed on this
-    ModuleOption instance, with as single argument the value to validate.
+    the default values ; an entry in this dict can either be a plain
+    ModuleOption or a OptionTemplateEntry. The difference is in the validation.
+     If it is a ModuleOption, a call to the is_valid method is performed on
+     this ModuleOption instance, with as single argument the value to validate.
     If it is a OptionTemplateEntry, then the "validator"
     member is called, with two arguments: the entry ModuleOption instance and
     the value to validate.
@@ -56,7 +60,8 @@ class AbilityBase(object):
     def _init_opt_hash(cls):
         if cls._opt_hash is not None:
             return
-        cls._opt_hash = collections.OrderedDict()  # keep options ordered in python2
+        # TODO: check in PY3 - keep options ordered in python2
+        cls._opt_hash = collections.OrderedDict()
         for opt in cls._option_list:
             if isinstance(opt, OptionTemplateEntry):
                 opt = opt.entry
@@ -70,33 +75,36 @@ class AbilityBase(object):
         for entry in cls._dependencies:
             if isinstance(entry, str):
                 cls._internal_dependencies[entry] = \
-                    packetweaver.core.models.abilities.ability_dependency.get_classic(entry)
+                    packetweaver.core.models.abilities.ability_dependency\
+                    .get_classic(entry)
             elif isinstance(entry, tuple):
                 cls._internal_dependencies[entry[0]] = \
-                    packetweaver.core.models.abilities.ability_dependency.AbilityDependency(
-                        entry[1], entry[2]
-                    )
+                    packetweaver.core.models.abilities.ability_dependency\
+                    .AbilityDependency(entry[1], entry[2])
             else:
-                raise Exception('Unknown dependency type: {}'.format(type(entry)))
+                raise Exception(
+                    'Unknown dependency type: {}'.format(type(entry))
+                )
 
     @classmethod
     def check_preconditions(cls, module_factory):
         cls._init_internal_dependencies()
-        l = []
+        l_dep = []
         for dep in cls._internal_dependencies.keys():
             inst = cls.cls_get_dependency(dep, module_factory)
             if inst is None:
                 raise Exception('Unknown dependency: {}'.format(dep))
-            l += type(inst).check_preconditions(module_factory)
-        return set(l)
+            l_dep += type(inst).check_preconditions(module_factory)
+        return set(l_dep)
 
     def __init__(self, module_factory, default_opts=None, view=output.Log()):
         """ Create a new ability
 
-        An ability is a class stored at a meaningful place in the module tree (the default or your)
-        This class must be sub-classed to implement a new simple ability.
+        An ability is a class stored at a meaningful place in the module tree
+        (the default or your) This class must be sub-classed to implement
+        a new simple ability.
 
-        :param module_factory: the module factory used to instantiate dependencies
+        :param module_factory: the factory used to instantiate dependencies
         :param default_opts: ability parameters values to be used as default
         :param view: a ViewsInterface subclass to handle the interface display
         """
@@ -154,14 +162,14 @@ class AbilityBase(object):
         for opt in kwargs:
             try:
                 self.set_opt(opt, kwargs[opt])
-            except:
+            except Exception:
                 raise Exception('Invalid parameter')
 
     def set_opt(self, opt_name, opt_value):
         """ Set a value to a specific option and check
 
-        The validity to the option format is checked. A exception is raised if the check
-        fails.
+        The validity to the option format is checked. A exception is raised
+        if the check fails.
 
         :param opt_name: name of the option
         :param opt_value: value to affect to this option
@@ -174,28 +182,38 @@ class AbilityBase(object):
             opt_name in type(self)._opt_hash
             and (
                 (
-                    isinstance(type(self)._opt_hash[opt_name], module_option.ModuleOption)
+                    isinstance(type(self)._opt_hash[opt_name],
+                               module_option.ModuleOption)
                     and (
                         type(self)._opt_hash[opt_name].is_valid(opt_value)
-                        or (opt_value.endswith('()') and type(self)._opt_hash[opt_name].is_valid(opt_value[:-2]))
+                        or (opt_value.endswith('()')
+                            and type(self)._opt_hash[opt_name].is_valid(
+                                opt_value[:-2])
+                            )
                     )
                 )
                 or (
-                    isinstance(type(self)._opt_hash[opt_name], OptionTemplateEntry)
+                    isinstance(type(self)._opt_hash[opt_name],
+                               OptionTemplateEntry)
                     and type(self)._opt_hash.validator(
                         type(self)._opt_hash[opt_name],
                         opt_value
                     )
                 )
             )
-        ), 'Invalid option name or value for option {}: {}'.format(opt_name, opt_value)
+        ), 'Invalid option name or value for option {}: {}'.format(opt_name,
+                                                                   opt_value)
 
         # Generate a value from the function
         if isinstance(opt_value, str) and opt_value.endswith('()'):
-            if isinstance(type(self)._opt_hash[opt_name], module_option.ModuleOption):
-                opt_value = type(self)._opt_hash[opt_name].generate_one_value(opt_value[:-2])
+            if isinstance(type(self)._opt_hash[opt_name],
+                          module_option.ModuleOption):
+                opt_value = type(self)._opt_hash[opt_name].generate_one_value(
+                    opt_value[:-2]
+                )
             else:
-                opt_value = type(self)._opt_hash[opt_name].entry.generate_one_value(opt_value[:-2])
+                opt_value = type(self)._opt_hash[opt_name].entry.\
+                    generate_one_value(opt_value[:-2])
         self._options[opt_name] = opt_value
 
         try:
@@ -263,20 +281,24 @@ class AbilityBase(object):
 
         :return: list of paths to the required abilities
         """
-        # Stores a list of abilities that are already added to the list of file to edit;
+        # Stores a list of abilities that are already added to the list of file
+        # to edit;
         # This variable is used to prevent infinite dependency import loops
         imported_abilities = []
-        abilities = [self]  # Stack of Abilities whose source file will be edited
+        abilities = [self]  # Stack of Abilities whose source file will be
+        # edited
         files = set()  # List of files to be edited
 
         while len(abilities) > 0:
             ability = abilities.pop(0)
 
-            # Get this ability dependencies so that we fetch all dependencies recursively
+            # Get this ability dependencies so that we fetch all dependencies
+            # recursively
             new_abls = []
             for dep in ability.get_dependencies().values():
                 pkg = module_factory.get_module_by_name(dep.package)
-                abl = type(pkg.get_ability_instance_by_name(dep.ability, module_factory))
+                abl = type(pkg.get_ability_instance_by_name(dep.ability,
+                                                            module_factory))
                 if abl not in abilities and abl not in imported_abilities:
                     new_abls.append(abl)
             imported_abilities += new_abls
@@ -292,11 +314,18 @@ class AbilityBase(object):
         if name not in cls._internal_dependencies:
             raise Exception('Unknown dependency: {}'.format(name))
 
-        module = module_factory.get_module_by_name(cls._internal_dependencies[name].package)
+        module = module_factory.get_module_by_name(
+            cls._internal_dependencies[name].package
+        )
         if module is None:
-            raise Exception('Unknown package: {}'.format(cls._internal_dependencies[name].package))
+            raise Exception('Unknown package: {}'.format(
+                cls._internal_dependencies[name].package)
+            )
 
-        ability = module.get_ability_instance_by_name(cls._internal_dependencies[name].ability, module_factory)
+        ability = module.get_ability_instance_by_name(
+            cls._internal_dependencies[name].ability,
+            module_factory
+        )
 
         for arg_name, arg_value in list(params.items()) + list(kwargs.items()):
             ability.set_opt(arg_name, arg_value)
@@ -304,7 +333,9 @@ class AbilityBase(object):
         return ability
 
     def get_dependency(self, name, params={}, **kwargs):
-        return type(self).cls_get_dependency(name, self._module_factory, params, **kwargs)
+        return type(self).cls_get_dependency(
+            name, self._module_factory, params, **kwargs
+        )
 
     def get_opt(self, name, interpreted=True, bypass_cache=False):
         """
@@ -327,10 +358,13 @@ class AbilityBase(object):
                 and callable(self._cached_opt_values[name][1].next)
             ):
                 val = self._cached_opt_values[name][1]
-            elif isinstance(type(self)._opt_hash[name], module_option.ModuleOption):
-                val = type(self)._opt_hash[name].generate_one_value(self._options[name])
+            elif isinstance(type(self)._opt_hash[name],
+                            module_option.ModuleOption):
+                val = type(self)._opt_hash[name].generate_one_value(
+                    self._options[name])
             else:
-                val = type(self)._opt_hash[name].entry.generate_one_value(self._options[name])
+                val = type(self)._opt_hash[name].entry.generate_one_value(
+                    self._options[name])
 
             if hasattr(val, 'next') and callable(val.next):
                 self._cached_opt_values[name] = next(val), val
@@ -349,8 +383,10 @@ class AbilityBase(object):
         """ Get suggestion on possible values for an option
 
         :param opt_name: name of the option
-        :param typed: begin of the text submit to the module_option in order to get completion suggestions
-        :param ref: custom data passed directly to the module_option by the ability
+        :param typed: begin of the text submit to the module_option in order
+            to get completion suggestions
+        :param ref: custom data passed directly to the module_option by the
+            ability
         @raise AssertionError
         """
         if opt_name not in type(self)._opt_hash:
@@ -379,7 +415,8 @@ class AbilityBase(object):
 
         if self._default_opts is not None and opt_name in self._default_opts:
             def_opt = self._default_opts[opt_name]
-        elif isinstance(type(self)._opt_hash[opt_name], module_option.ModuleOption):
+        elif isinstance(type(self)._opt_hash[opt_name],
+                        module_option.ModuleOption):
             def_opt = type(self)._opt_hash[opt_name].get_value()
         else:
             def_opt = type(self)._opt_hash[opt_name].entry.get_value()
@@ -391,7 +428,8 @@ class AbilityBase(object):
             return False
 
     @abc.abstractmethod
-    def main(self, **kwargs): pass
+    def main(self, **kwargs):
+        pass
 
     def __getattr__(self, item):
         if type(self)._opt_hash is not None and item in type(self)._opt_hash:
@@ -419,7 +457,9 @@ class AbilityBase(object):
 
     def _start_wait_and_stop(self, abl_lst):
         for abl in abl_lst:
-            self.logger.debug('[{}] calling start'.format(abl._info.get_name()))
+            self.logger.debug('[{}] calling start'.format(
+                abl._info.get_name())
+            )
             abl.start()
 
         self._wait()
@@ -445,12 +485,19 @@ class AbilityBase(object):
             self._info.get_name(),
             self._started_status))
         try:
-            self.logger.debug('[{}] - start of main'.format(self._info.get_name()))
+            self.logger.debug('[{}] - start of main'.format(
+                self._info.get_name())
+            )
             self._ret_value = self.main(*args, **kwargs)
-            self.logger.debug('[{}] - end of main'.format(self._info.get_name()))
+            self.logger.debug('[{}] - end of main'.format(
+                self._info.get_name())
+            )
         finally:
             self._started_status = False
-            self.logger.debug('[{}] - set status {} '.format(self._info.get_name(), self._started_status))
+            self.logger.debug('[{}] - set status {} '.format(
+                self._info.get_name(),
+                self._started_status)
+            )
 
     def stop(self):
         self._alive = False
@@ -462,4 +509,3 @@ class AbilityBase(object):
         AbilityBase module)
         """
         self.stop()
-

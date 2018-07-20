@@ -1,17 +1,9 @@
-import sys
 import copy
 import inspect
-import types
-import sys
 
-import packetweaver.core.views.view_interface as view_interface
-import packetweaver.core.models.abilities.ability_base as ability_base
 import packetweaver.core.models.status as status
 import packetweaver.core.controllers.exceptions as ex
-import packetweaver.core.models.modules.module_factory
-if sys.version_info > (3, 0):
-    # reload moved to imp in python3
-    from importlib import reload
+from importlib import reload
 
 
 class AbilityModule(object):
@@ -34,16 +26,19 @@ class AbilityModule(object):
                 s.union(set(abl.get_option_list()))
         except AttributeError:
             raise ex.Conf(
-                '\nYour [{}] package does not exist or does not have a valid "exported_abilities" setup in its abilities/__init__.py module.'.format(
-                    self._mod_path
-                )
+                '\nYour [{}] package does not exist or '
+                'does not have a valid "exported_abilities" setup '
+                'in its abilities/__init__.py module.'.format(self._mod_path)
             )
         return s
 
     def set_default_options(self, opts):
-        unknown_opts = [opt for opt in opts.keys() if opt not in self._known_opts]
+        unknown_opts = [opt for opt in opts.keys()
+                        if opt not in self._known_opts]
         if len(unknown_opts) > 0:
-            raise Exception('Unknown options: {}'.format(', '.join(unknown_opts)))
+            raise Exception('Unknown options: {}'.format(
+                ', '.join(unknown_opts))
+            )
         self._defaults = copy.deepcopy(opts)
 
     def get_ability_instance_by_name(self, name, module_factory):
@@ -51,12 +46,13 @@ class AbilityModule(object):
         for abl in self._mod.exported_abilities:
             if abl.get_name() == name:
                 reload(inspect.getmodule(abl))
-        # We need to reload the "module" because the submodule were reloaded too
+        # We need to reload the "module" because the submodule was reloaded too
         self._mod = module_factory.reload_module(self._mod_path)
 
         for abl in self._mod.exported_abilities:
             if abl.get_name() == name:
-                opts = {k: v for k, v in self._defaults.items() if k in abl.get_option_list()}
+                opts = {k: v for k, v in self._defaults.items()
+                        if k in abl.get_option_list()}
                 return abl(
                     module_factory,
                     default_opts=opts,

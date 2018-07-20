@@ -1,5 +1,3 @@
-# coding: utf8
-import random
 
 
 class RandDraw(object):
@@ -13,34 +11,43 @@ class RandDraw(object):
 
         :param expr: str - a pattern example is '1-128.*.24-27.*'
         :return: str - a well formed IP address (not especially valid)
-                 None or raise ValueError or ipaddress.AddressValueError if fail
+                 None or raise ValueError/ipaddress.AddressValueError if fail
         """
         # generate a random IP following the given expression
         expression = expr.replace(' ', '')
-        l = expression.split('.')
+        l_ip_vals = expression.split('.')
         ip_l = []
-        if len(l) != 4:
+        if len(l_ip_vals) != 4:
             print("Bad ipv4 expression - a correct pattern is '1-23.43.*.*'.")
             return None
-        for n in l:
+        for n in l_ip_vals:
             inter = n.split('-')
             if len(inter) == 2:
                 if inter[0] == '' or inter[1] == '' or \
                         not 0 <= int(inter[0]) <= 255 or \
                         not 0 <= int(inter[1]) <= 255:
-                    print('IP range from 0 to 255 (current is {})'.format(inter[0]))
+                    print('IP range from 0 to 255 (current is {})'.format(
+                        inter[0])
+                    )
                     return None
-                ip_num = "{}".format(self._rng.randint(int(inter[0]), int(inter[1])))
+                ip_num = "{}".format(self._rng.randint(
+                    int(inter[0]), int(inter[1]))
+                )
             elif len(inter) == 1:
                 if inter[0] == "*":
                     ip_num = "{}".format(self._rng.randint(0, 255))
                 elif inter:
                     if not 0 <= int(inter[0]) <= 255:
-                        print('IP range from 0 to 255 (current is {})'.format(inter[0]))
+                        print('IP range from 0 to 255 (current is {})'.format(
+                            inter[0])
+                        )
                         return None
                     ip_num = inter[0]
             else:
-                print("Bad ipv4 expression items - a correct pattern is '1-23.43.*.*'.")
+                print(
+                    'Bad ipv4 expression items'
+                    ' - a correct pattern is "1-23.43.*.*".'
+                )
                 return None
             ip_l.append(ip_num)
 
@@ -55,7 +62,6 @@ class RandDraw(object):
 
         :return: str - ipv6 valid address
         """
-        # return ':'.join('{:x}'.format(random.randint(0, 2**16 - 1)) for i in xrange(8))
         randint = self._rng.randint(0, 2 ** 128 - 1)
         return ':'.join(
             [
@@ -66,16 +72,20 @@ class RandDraw(object):
             ]
         )
 
-    def string(self, size=0, values="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"):
+    def string(self, size=0, values="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                    "abcdefghijklmnopqrstuvwxyz0123456789"):
         """ Return a random string
 
-        :param size: length of the generated string. Let size to zero to have a random length string between 0 and 100
+        :param size: length of the generated string. Let size to zero to have
+            a random length string between 0 and 100
         :param values: characters to used to generate the string
         :return: string
         """
         if size:
-            return "".join(values[self._rng.randint(0, len(values) - 1)] for i in range(size))
-        return "".join(values[self._rng.randint(0, len(values) - 1)] for i in range(self._rng.randint(0, 100)))
+            return "".join(values[self._rng.randint(0, len(values) - 1)]
+                           for i in range(size))
+        return "".join(values[self._rng.randint(0, len(values) - 1)]
+                       for i in range(self._rng.randint(0, 100)))
 
     def number(self, lower_val=-10, higher_val=10):
         """ Generate a random number between two values
@@ -93,7 +103,8 @@ class RandDraw(object):
     def mac(self, expr='*:*:*:*:*:*'):
         """ Generate a random mac address following a pattern
 
-        :param expr: pattern used to generate the address, e.g. '01:00:5e:00-7f:*:*'
+        :param expr: pattern used to generate the address,
+            e.g. '01:00:5e:00-7f:*:*'
         :return: string - mac address, 00:00:00:00:00:00 by default
         """
         expression = expr.replace(' ', '')
@@ -108,9 +119,9 @@ class RandDraw(object):
                 elif inter:
                     i = int(inter[0], 16)
                 else:
-                    print("Bad mac pattern")
+                    print('Bad mac pattern')
             else:
-                print("Bad mac expression")
+                print('Bad mac expression')
                 return None
             l_mac.append(i)
         return ':'.join('{:02x}'.format(item) for item in l_mac)

@@ -90,11 +90,12 @@ todo_include_todos = False
 #
 try:
     import sphinx_rtd_theme
-    html_theme = "sphinx_rtd_theme"
+    html_theme = 'sphinx_rtd_theme'
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-    print("> Making use of ReadTheDocs theme")
+    print('> Making use of ReadTheDocs theme')
 except ImportError:
-    print("> ReadTheDocs theme not found, making use of the classic sphinx theme")
+    print('> ReadTheDocs theme not found, '
+          'making use of the classic sphinx theme')
     html_theme = 'classic'
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -164,6 +165,3 @@ texinfo_documents = [
      author, 'PacketWeaver', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-

@@ -1,4 +1,3 @@
-# coding: utf8
 import abc
 import os
 import re
@@ -6,19 +5,20 @@ import copy
 import random
 import packetweaver.libs.gen.rand_draw as draw
 import packetweaver.libs.sys.ipaddress_mgmt as ipaddr_mgmt
+
 try:
     import packetweaver.libs.gen.cyclic_rng as cyclic_rng
     HAS_CYCLIC_RNG = True
 except ImportError:
     HAS_CYCLIC_RNG = False
 
-# Check if pyroute2 or is available and activate the corresponding functionality if yes
+# Activate pyroute2 associated function if available
 try:
     import pyroute2
 
     HAS_PYROUTE2 = True
 except ImportError:
-    print("Cannot verify NIC interfaces existence! Please install pyroute2")
+    print('Cannot verify NIC interfaces existence! Please install pyroute2')
     HAS_PYROUTE2 = False
 
 
@@ -29,7 +29,7 @@ class ModuleOption(object):
         :param name: name that the option will be called with
         :param value: value of the option
         :param comment: describe what the option is doing
-        :param optional: define if the option must be specified to run the ability
+        :param optional: define if the option must be specified to run the abl
         """
         self._name = name
         self._optional = optional
@@ -81,23 +81,31 @@ class ModuleOption(object):
 class ModuleOptionWithPossibleValues(ModuleOption):
     """ Option type for which a set of possible values has been predefined
 
-    The predefined values are organized as a dict, where keys are this option possible values
-    and the values of the dict are callable that return a "usable" value for Abilities 
+    The predefined values are organized as a dict, where keys are this option
+    possible values and the values of the dict are callable that return
+    a "usable" value for Abilities
     """
     _possible_val = {}
 
     @abc.abstractmethod
-    def __init__(self, name, default=None, comment=None, optional=False, rng=draw.RandDraw(random)):
-        super(ModuleOptionWithPossibleValues, self).__init__(name, default=default, comment=comment, optional=optional)
+    def __init__(self, name, default=None, comment=None, optional=False,
+                 rng=draw.RandDraw(random)):
+        super(ModuleOptionWithPossibleValues, self).__init__(name,
+                                                             default=default,
+                                                             comment=comment,
+                                                             optional=optional)
         self._rng = rng
 
     @classmethod
     def get_possible_values(cls, typed=None, ref=None):
         """ List all the possible values, whose name starts with "typed"
 
-        :param typed: beginning of the name of a possible value (used for completion)
+        :param typed: beginning of the name of a possible value
+                      (used for command line completion)
         """
-        return [i for i in cls._possible_val.keys() if typed is None or i.startswith(typed)]
+        return [i for i in cls._possible_val.keys()
+                if typed is None
+                or i.startswith(typed)]
 
     def get_options_summary(self):
         return {
@@ -109,12 +117,14 @@ class ModuleOptionWithPossibleValues(ModuleOption):
         }
 
     def generate_one_value(self, v):
-        """ Return a valid value for the option, whether it be the interval value or a generated value by one of the 
-        callable associated to the possible values
+        """ Return a valid value for the option, whether it be the interval
+        value or a generated value by one of the callable associated to
+        the possible values
         """
         assert (self.is_valid(v))
 
-        if v is not None and 0 < len([v for pv in type(self)._possible_val if v.startswith(pv)]):
+        if v is not None and 0 < len([v for pv in type(self)._possible_val
+                                      if v.startswith(pv)]):
             return self._possible_val[v](self._rng)
         return v
 
@@ -132,17 +142,19 @@ class IpOpt(ModuleOptionWithPossibleValues):
         'RandIP_classE_Reserved': lambda rng: rng.ipv4('240-255.*.*.*'),
     }
 
-    def __init__(self, name, default='RandIP4', comment=None, optional=False, rng=draw.RandDraw(random)):
+    def __init__(self, name, default='RandIP4', comment=None, optional=False,
+                 rng=draw.RandDraw(random)):
         """ Holds an IPv4 or an IPv6 address
         """
-        super(IpOpt, self).__init__(name, default=default, comment=comment, optional=optional, rng=rng)
+        super(IpOpt, self).__init__(name, default=default, comment=comment,
+                                    optional=optional, rng=rng)
 
     def is_valid(self, v):
-
         return (
             (self.is_optional() and (v is None or v == 'None'))
             or ipaddr_mgmt.is_a_valid_ip_address(v)
-            or 0 < len([v for pv in type(self)._possible_val if v.startswith(pv)])
+            or 0 < len([v for pv in type(self)._possible_val
+                        if v.startswith(pv)])
         )
 
     def generate_one_value(self, v):
@@ -150,15 +162,17 @@ class IpOpt(ModuleOptionWithPossibleValues):
 
 
 class PrefixOpt(ModuleOption):
-    def __init__(self, name, default='127.0.0.0/8', comment=None, optional=False, ordered=False, rng_class=None):
+    def __init__(self, name, default='127.0.0.0/8', comment=None,
+                 optional=False, ordered=False, rng_class=None):
         """ Holds an IPv4 or an IPv6 address
         """
-        super(PrefixOpt, self).__init__(name, default=default, comment=comment, optional=optional)
+        super(PrefixOpt, self).__init__(name, default=default, comment=comment,
+                                        optional=optional)
         if HAS_CYCLIC_RNG and rng_class is None:
             self._rng_cls = cyclic_rng.CyclicPRNG
         else:
             self._rng_cls = rng_class
-        self._ordered=ordered
+        self._ordered = ordered
 
     def iterate_over_a_prefix(self, prefix):
         ip_count_in_prefix = ipaddr_mgmt.get_ip_count_in_prefix(prefix)
@@ -171,7 +185,9 @@ class PrefixOpt(ModuleOption):
         raise StopIteration()
 
     def is_valid(self, v):
-        return ((v is None or v == 'None') and self.is_optional()) or (ipaddr_mgmt.is_a_valid_prefix(v))
+        return ((v is None or v == 'None')
+                and self.is_optional()) \
+                or (ipaddr_mgmt.is_a_valid_prefix(v))
 
     def generate_one_value(self, v):
         return self.iterate_over_a_prefix(v)
@@ -184,11 +200,15 @@ class MacOpt(ModuleOptionWithPossibleValues):
         'MacFF': lambda _: 'ff:ff:ff:ff:ff:ff',
         'Mac00': lambda _: '00:00:00:00:00:00',
     }
-    _regexp_valid1 = re.compile('^(?:(?:(?:[0-9a-f]{2})|(?:\\*)):){5}(?:(?:[0-9a-f]{2})|(?:\\*))$', re.I)
+    _regexp_valid1 = re.compile(
+        '^(?:(?:(?:[0-9a-f]{2})|(?:\\*)):){5}(?:(?:[0-9a-f]{2})|(?:\\*))$',
+        re.I)
     _regexp_valid2 = re.compile('^[0-9a-f]{12}$', re.I)
 
-    def __init__(self, name, default='RandMac', comment=None, optional=False, rng=draw.RandDraw(random)):
-        super(MacOpt, self).__init__(name, default=default, comment=comment, optional=optional, rng=rng)
+    def __init__(self, name, default='RandMac', comment=None, optional=False,
+                 rng=draw.RandDraw(random)):
+        super(MacOpt, self).__init__(name, default=default, comment=comment,
+                                     optional=optional, rng=rng)
 
     def is_valid(self, v):
         return (
@@ -197,7 +217,8 @@ class MacOpt(ModuleOptionWithPossibleValues):
                 isinstance(v, str) and (
                     type(self)._regexp_valid1.search(v) is not None
                     or type(self)._regexp_valid2.search(v) is not None
-                    or 0 < len([v for pv in type(self)._possible_val if v.startswith(pv)])
+                    or 0 < len([v for pv in type(self)._possible_val
+                                if v.startswith(pv)])
                 )
             )
         )
@@ -210,7 +231,8 @@ class BoolOpt(ModuleOptionWithPossibleValues):
     }
 
     def __init__(self, name, default=False, comment=None, optional=False):
-        super(BoolOpt, self).__init__(name, default=default, comment=comment, optional=optional)
+        super(BoolOpt, self).__init__(name, default=default, comment=comment,
+                                      optional=optional)
 
     def is_valid(self, v):
         return (
@@ -230,21 +252,25 @@ class BoolOpt(ModuleOptionWithPossibleValues):
 
 
 class ChoiceOpt(ModuleOption):
-    def __init__(self, name, choices, default=None, comment=None, optional=False):
+    def __init__(self, name, choices, default=None, comment=None,
+                 optional=False):
         if len(choices) == 0:
-            raise ValueError('Invalid choice list: choice list must be non-empty.')
+            raise ValueError(
+                'Invalid choice list: choice list must be non-empty.'
+            )
 
         self._possible_val = copy.deepcopy(choices)
 
         if not optional and default is None:
-            super(ChoiceOpt, self).__init__(name, self._possible_val[0], comment, optional)
+            super(ChoiceOpt, self).__init__(name, self._possible_val[0],
+                                            comment, optional)
         else:
             super(ChoiceOpt, self).__init__(name, default, comment, optional)
             assert self.is_valid(default)
 
     def get_possible_values(self, typed=None, ref=None):
-        l = copy.deepcopy(self._possible_val)
-        return [i for i in l if typed is None or i.startswith(typed)]
+        l_val = copy.deepcopy(self._possible_val)
+        return [i for i in l_val if typed is None or i.startswith(typed)]
 
     get_choices = get_possible_values
 
@@ -267,8 +293,9 @@ class ChoiceOpt(ModuleOption):
         }
 
     def generate_one_value(self, s):
-        """ Returns either None if the value is None and the field is optional, or the first choice if the value is
-         None and the field is not optional. If the value is a valid choice, returns that choice.
+        """ Returns either None if the value is None and the field is optional,
+         or the first choice if the value is None and the field is
+         not optional. If the value is a valid choice, returns that choice.
         """
         if isinstance(s, type(None)):
             if self.is_optional():
@@ -280,14 +307,18 @@ class ChoiceOpt(ModuleOption):
 
 
 class StrOpt(ModuleOptionWithPossibleValues):
-    _possible_val = {'RandString': lambda rng: rng.string(),}
+    _possible_val = {'RandString': lambda rng: rng.string(), }
 
-    def __init__(self, name, default='RandString', comment=None, optional=False, rng=draw.RandDraw(random)):
+    def __init__(self, name, default='RandString', comment=None,
+                 optional=False, rng=draw.RandDraw(random)):
         """ Handles string type parameters """
-        super(StrOpt, self).__init__(name, default=default, comment=comment, optional=optional, rng=rng)
+        super(StrOpt, self).__init__(name, default=default, comment=comment,
+                                     optional=optional, rng=rng)
 
     def is_valid(self, v):
-        return (self.is_optional() and (v is None or v == 'None')) or isinstance(v, str)
+        return (self.is_optional()
+                and (v is None or v == 'None')) \
+                or isinstance(v, str)
 
 
 class NumOpt(ModuleOptionWithPossibleValues):
@@ -302,12 +333,14 @@ class NumOpt(ModuleOptionWithPossibleValues):
         'RandSLong': lambda rng: rng.number(-2**63, 2**63-1),
     }
 
-    def __init__(self, name, default='RandByte', comment=None, optional=False, rng=draw.RandDraw(random)):
+    def __init__(self, name, default='RandByte', comment=None, optional=False,
+                 rng=draw.RandDraw(random)):
         """ Handles number parameters
 
         :param default: the number cast into a string
         """
-        super(NumOpt, self).__init__(name, default=default, comment=comment, optional=optional, rng=rng)
+        super(NumOpt, self).__init__(name, default=default, comment=comment,
+                                     optional=optional, rng=rng)
 
     def is_valid(self, v):
         """ Validate that the input type can be casted to a number. """
@@ -322,7 +355,8 @@ class NumOpt(ModuleOptionWithPossibleValues):
                 v = float(v)
                 ok = True
             except (ValueError, TypeError):
-                ok = 0 < len([v for pv in type(self)._possible_val if v.startswith(pv)])
+                ok = 0 < len([v for pv in type(self)._possible_val
+                              if v.startswith(pv)])
         return ok
 
     def generate_one_value(self, s):
@@ -348,9 +382,11 @@ class PortOpt(NumOpt):
         'RandPrivilegedPort': lambda rng: rng.number(1, 1024),
     }
 
-    def __init__(self, name, default='RandPort', comment=None, optional=False, rng=draw.RandDraw(random)):
+    def __init__(self, name, default='RandPort', comment=None, optional=False,
+                 rng=draw.RandDraw(random)):
         """ Contains a number being a valid port number """
-        super(PortOpt, self).__init__(name, default=default, comment=comment, optional=optional, rng=rng)
+        super(PortOpt, self).__init__(name, default=default, comment=comment,
+                                      optional=optional, rng=rng)
 
     def is_valid(self, v):
         accepted_types = (int,)
@@ -361,7 +397,8 @@ class PortOpt(NumOpt):
                 or (
                     isinstance(v, str) or hasattr(v, '__str__')
                     and (
-                        0 < len([v for pv in type(self)._possible_val if v.startswith(pv)])
+                        0 < len([v for pv in type(self)._possible_val
+                                 if v.startswith(pv)])
                         or 0 <= int(str(v)) <= 65535
                     )
                 )
@@ -390,12 +427,15 @@ class CallbackOpt(ModuleOption):
         super(CallbackOpt, self).__init__(name, default, comment, optional)
 
     def is_valid(self, v):
-        return ((v is None or v == 'None') and self.is_optional()) or callable(v)
+        return ((v is None or v == 'None')
+                and self.is_optional()) \
+                or callable(v)
 
 
 class PathOpt(StrOpt):
     def __init__(self, name, comment=None, optional=False,
-                 executable=None, must_exist=None, readable=None, writable=None, is_dir=False, **kwargs
+                 executable=None, must_exist=None, readable=None,
+                 writable=None, is_dir=False, **kwargs
                  ):
         """ Hold a path information
 
@@ -406,14 +446,17 @@ class PathOpt(StrOpt):
         :param default: a path suiting the file attribute arguments
         :param comment: explanations
         :param optional: if the parameter can be None
-        :param executable: if true, the user running PacketWeaver must have execute privileges on the file. If false,
-            the user running must NOT have execute privileges on the file. If None, it does not matter.
-        :param must_exist: the file pointed must exist if True, must not exist if False, and existence does not matter
-            if None.
-        :param readable: if true, the user running PacketWeaver must have read privileges on the file. If false,
-            the user running must NOT have read privileges on the file. If None, it does not matter.
-        :param writable: if true, the user running PacketWeaver must have write privileges on the file. If false,
-            the user running must NOT have write privileges on the file. If None, it does not matter.
+        :param executable: if true, the user running PacketWeaver must have
+            execute privileges on the file. If false, the user running must NOT
+            have execute privileges on the file. If None, it does not matter.
+        :param must_exist: the file pointed must exist if True, must not exist
+            if False, and existence does not matter if None.
+        :param readable: if true, the user running PacketWeaver must have read
+            privileges on the file. If false, the user running must NOT have
+            read privileges on the file. If None, it does not matter.
+        :param writable: if true, the user running PacketWeaver must have
+            write privileges on the file. If false, the user running must NOT
+            have write privileges on the file. If None, it does not matter.
         :param is_dir: the file is a directory
         """
         self._executable = executable
@@ -470,9 +513,9 @@ class PathOpt(StrOpt):
             if len(searched) == 0:
                 searched = base_path
             bs = os.path.basename(typed)
-        l = [
+        l_possible_val = [
             p + os.path.sep if os.path.isdir(os.path.join(searched, p)) else p
             for p in os.listdir(os.path.join(base_path, searched))
             if len(bs) == 0 or p.startswith(bs)
         ]
-        return l
+        return l_possible_val

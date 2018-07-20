@@ -18,10 +18,11 @@ class TestRandDraw:
         except ValueError:
             return False
 
-
     @staticmethod
     def is_valid_mac(mac):
-        return re.search("^([0-9a-f]{2}:){5}([0-9a-f]{2})$", mac, re.I) is not None
+        return re.search(
+            "^([0-9a-f]{2}:){5}([0-9a-f]{2})$", mac, re.I
+        ) is not None
 
     @staticmethod
     def is_valid_str(s):
@@ -48,7 +49,8 @@ class TestRandDraw:
 
         mac = rand.mac('01:00:5e:00-7f:*:*')
         assert self.is_valid_mac(mac)
-        assert mac[0:9] == '01:00:5e:' and 0 <= int(mac[9:11], 16) <= int('7f', 16)
+        assert mac[0:9] == '01:00:5e:' \
+            and 0 <= int(mac[9:11], 16) <= int('7f', 16)
 
         assert rand.mac('ff:ff:ff:ff:ff:ff') == 'ff:ff:ff:ff:ff:ff'
 

@@ -1,4 +1,3 @@
-# coding: utf8
 
 
 class StatusItem(object):
@@ -59,22 +58,28 @@ class Tag(StatusItem):
 
 
 class OptNames(object):
-    """ Defines tags to specify default names to frequently used ability parameter types
+    """ Defines tags to specify default names to frequently used ability
+        parameter types
 
     MAC_SRC: an Ethernet source MAC (Media Access Control) address
     MAC_DST: an Ethernet destination MAC
     IP_SRC: a IP (Internet Protocol) source address
     IP_DST: a IP (Internet Protocol) destination address
-    PORT_SRC: a TCP(Transmission Control Protocol)/UDP(User Datagram Protocol) source port
+    PORT_SRC: a TCP(Transmission Control Protocol)/UDP(User Datagram Protocol)
+        source port
     PORT_DST: a TCP/UDP destination port
-    INPUT_INTERFACE: name of the host network interface to be used to receive network traffic
-    OUTPUT_INTERFACE: name of the host network interface to be used to send traffic
-    L4PROTOCOL: a OSI level 4 protocol over IP, used to abstract for example the use of TCP or UDP
+    INPUT_INTERFACE: name of the host network interface to be used to receive
+        network traffic
+    OUTPUT_INTERFACE: name of the host network interface to be used to send
+        traffic
+    L4PROTOCOL: a OSI level 4 protocol over IP, used to abstract for example
+        the use of TCP or UDP
     CALLBACK: to specify a callback parameter
     INPUT_PIPE: to name an input communication pipe
     OUTPUT_PIPE: to name an output communication pipe
     PATH_DST: to specify a path (file or directory) to write a specific content
-    PATH_SRC: to specify a path (file or directory) that will be use to read information
+    PATH_SRC: to specify a path (file or directory) that will be use to read
+        information
     """
     MAC_SRC = 'mac_src'
     MAC_DST = 'mac_dst'
@@ -95,8 +100,10 @@ class OptNames(object):
 class AbilityType(object):
     """ Defines the type of a Module (i.e ability)
 
-    STANDALONE: the ability is standalone and can thus be called directly by the framework
-    COMPONENT: the ability cannot be called by the user and has to be used by another ability
+    STANDALONE: the ability is standalone and can thus be called directly by
+        the framework
+    COMPONENT: the ability cannot be called by the user and has to be used by
+        another ability
     """
     STANDALONE = "Standalone"
     COMPONENT = "Component"

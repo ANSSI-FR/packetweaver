@@ -43,10 +43,14 @@ def start_capture(iface, bpf=None, in_pkt_pipe=None):
     stop_evt = threading.Event()
     if isinstance(in_pkt_pipe, type(None)):
         pp, cp = multiprocessing.Pipe()
-        t = threading.Thread(target=capture_thread, name="Packet Capture", args=(stop_evt, cp, iface, bpf))
+        t = threading.Thread(target=capture_thread,
+                             name='Packet Capture',
+                             args=(stop_evt, cp, iface, bpf))
     else:
         pp = None
-        t = threading.Thread(target=capture_thread, name="Packet Capture", args=(stop_evt, in_pkt_pipe, iface, bpf))
+        t = threading.Thread(target=capture_thread,
+                             name='Packet Capture',
+                             args=(stop_evt, in_pkt_pipe, iface, bpf))
 
     t.start()
     logger_pcap.debug('Run pcapy capture thread on iface [{}]'.format(iface))
@@ -67,24 +71,9 @@ def sending_raw_traffic_thread(stop_evt, poller, receiver, iface):
 def send_raw_traffic(iface, poller, receiver):
     stop_evt = threading.Event()
     t = threading.Thread(
-        target=sending_raw_traffic_thread, name="Raw Traffic Emitter",
+        target=sending_raw_traffic_thread, name='Raw Traffic Emitter',
         args=(stop_evt, poller, receiver, iface)
     )
     t.start()
 
     return t, stop_evt
-
-
-if __name__ == '__main__':
-    import signal
-    t, e, p = start_capture('br0', 'arp')
-    signal.signal(signal.SIGINT, lambda s, f: e.set())
-    cnt = 10
-    pkt = p.recv()
-    while cnt:
-        print(pkt.encode('hex'))
-        pkt = p.recv()
-        cnt -= 1
-    e.set()
-    t.join()
-
