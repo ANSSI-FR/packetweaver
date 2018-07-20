@@ -1,10 +1,6 @@
-# coding: utf8
-import abc
 import copy
 import packetweaver.libs.sys.path_handling as path_hand
 import packetweaver.core.models.modules.module_factory as module_factory
-import packetweaver.core.models.abilities.ability_base as ability_base
-import packetweaver.core.views.view_interface as view_interface
 import packetweaver.core.views.text as output
 
 
@@ -13,7 +9,8 @@ class ModuleListModel(object):
     def __init__(self, paths, view=output.Log()):
         """ The model used to interact with the list of available modules
 
-        Note: module is the model used to interact with the real ability. See AbilityModule
+        Note: module is the model used to interact with the real ability.
+            See AbilityModule
 
         :param paths: list of paths to the activated ability packages
         :param view: a ViewInterface subclass to handle user interface display
@@ -37,7 +34,8 @@ class ModuleListModel(object):
         """
         if 1 <= id <= len(self._last_search_results):
             return (  # id starts at 1
-                module_factory.ModuleFactory.get_module(self._last_search_results[id-1][0], self._view),
+                module_factory.ModuleFactory.get_module(
+                    self._last_search_results[id-1][0], self._view),
                 self._last_search_results[id-1][1]
             )
         return None
@@ -53,7 +51,8 @@ class ModuleListModel(object):
         return self._ability_tags
 
     def get_module_name_words(self):
-        """ Return a list of all used words (lower case) in module names for completion """
+        """ Return a list of all used words (lower case) in module names
+         for shell completion """
         if len(self._ability_name_words) == 0:
             for pkg_path, list_abl in self._module_list.iteritems():
                 for abl in list_abl:
@@ -72,7 +71,8 @@ class ModuleListModel(object):
         so a user can use it with:
         >use 1
 
-        For now, only self.module_list is used (as the search function is not yet implemented)
+        For now, only self.module_list is used (as the search function is not
+            yet implemented)
         we can use directly the full list of modules
         """
         last_search = []
@@ -92,7 +92,8 @@ class ModuleListModel(object):
                 l_abl_names.append(abl.get_name())
             else:
                 self._view.warning(
-                    'An ability name should not be reused. Please specify another name for one of the [{}] ability.'.format(
+                    'An ability name should not be reused. Please specify '
+                    'another name for one of the [{}] ability.'.format(
                         abl.get_name()
                     )
                 )
@@ -102,14 +103,15 @@ class ModuleListModel(object):
         return returned_list
 
     def search_module(self, pattern, tags, search_all_tags):
-        """search module path returns only module paths that contain a certain expression s
+        """search module path returns only module paths that contain a
+            certain expression s
 
         all searches are lowercase
 
         :param pattern str: the expression to search for
         :param tags: set of Str, tags returned ability must have
-        :param search_all_tags: 
-            True -> all tags must be present to match (and relationship), 
+        :param search_all_tags:
+            True -> all tags must be present to match (and relationship),
             False -> at least 1 (or relationship)
         :return: the list of matching modules
         """
@@ -148,5 +150,8 @@ class ModuleListModel(object):
         """
         searched_path = [limit] if limit is not None else self._paths
         for pkg_path in searched_path:
-            m = module_factory.ModuleFactory.get_module(path_hand.get_abs_path(pkg_path), self._view)
+            m = module_factory.ModuleFactory.get_module(
+                path_hand.get_abs_path(pkg_path),
+                self._view
+            )
             self._module_list[pkg_path] = m.get_standalone_abilities()

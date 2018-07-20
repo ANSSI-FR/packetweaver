@@ -1,4 +1,3 @@
-# coding: utf8
 import os
 
 
@@ -31,4 +30,3 @@ def get_abs_path(path_, ref=None):
             path = os.path.abspath(path_)
 
     return path[:-1] if path.endswith('/') else path
-

@@ -1,6 +1,7 @@
 import collections
 
-AbilityDependency = collections.namedtuple('AbilityDependency', ['package', 'ability'])
+AbilityDependency = collections.namedtuple('AbilityDependency',
+                                           ['package', 'ability'])
 
 classic_dependencies = {
     'mitm': AbilityDependency('base', 'Message Interceptor'),

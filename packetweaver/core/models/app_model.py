@@ -1,14 +1,8 @@
-# coding: utf8
-# for future python 3 compatibility
 import os
-import sys
 import subprocess
 import packetweaver.core.controllers.exceptions as ex
 import packetweaver.libs.sys.path_handling as path_ha
-if sys.version_info > (3, 0):
-    import configparser as config_parser
-else:
-    import ConfigParser as config_parser
+import configparser as config_parser
 
 
 class AppModel(object):
@@ -20,27 +14,38 @@ class AppModel(object):
 
         @raise os.error
         """
-        self.app_version = "0.2"
-        self.app_name = "Packet Weaver"
-        self.app_name_abbrev = "pw"
-        self.app_prompt_l1 = "pw> "
-        self.app_prompt_l2 = "pw ({})> "
-        self.app_slogan = "A Python framework for script filing and task sequencing"
+        self.app_version = '0.2'
+        self.app_name = 'Packet Weaver'
+        self.app_name_abbrev = 'pw'
+        self.app_prompt_l1 = 'pw> '
+        self.app_prompt_l2 = 'pw ({})> '
+        self.app_slogan = 'A Python framework for ' \
+                          'script filing and task sequencing'
         self.framework_path = os.getcwd()
         self._config_file = path_ha.get_abs_path(config_filename)
         self._load_config()
         self.hist_file_default_path = '.pwhistory'
-        self.err_header_pkg = 'Configuration file ({}) | Packages:\n'.format(self._config_file)
-        self.err_header_dep = 'Configuration file ({}) | Dependencies:\n'.format(self._config_file)
-        self.err_header_editor = 'Configuration file ({}) | Tools:\n'.format(self._config_file)
-        self.err_header_hist = 'Configuration file ({})| Internals:\n'.format(self._config_file)
+        self.err_header_pkg = 'Config. file ({}) | Packages:\n'.format(
+            self._config_file
+        )
+        self.err_header_dep = 'Config. file ({}) | Dependencies:\n'.format(
+            self._config_file
+        )
+        self.err_header_editor = 'Config. file ({}) | Tools:\n'.format(
+            self._config_file
+        )
+        self.err_header_hist = 'Config. file ({})| Internals:\n'.format(
+            self._config_file
+        )
 
     def _load_config(self):
         """
         @raise os.error
         """
         if not os.access(self._config_file, os.R_OK):
-            raise os.error('Cannot read config file: {}'.format(self._config_file))
+            raise os.error('Cannot read config file: {}'.format(
+                self._config_file)
+            )
         self._config = config_parser.RawConfigParser()
         self._config.read(self._config_file)
 
@@ -63,7 +68,8 @@ class AppModel(object):
         return self.app_version
 
     def get_hist_file_path(self):
-        """ Return a path to the file where is store the interactive CLI command history
+        """ Return a path to the file where is store the interactive CLI
+            command history
 
         The path to this file is taken from the framework configuration file.
 
@@ -86,7 +92,9 @@ class AppModel(object):
                 open(hist_file_path, "w").close()
         except IOError:
             raise ex.ConfHistFileNotAccessible(
-                '{} history file at [{}] is not accessible or is not a file'.format(self.err_header_hist, hist_file_path)
+                '{} history file at [{}]'
+                ' is not accessible or is not a file'.format(
+                    self.err_header_hist, hist_file_path)
             )
 
         return hist_file_path
@@ -94,11 +102,13 @@ class AppModel(object):
     def get_editor(self):
         """ Return the editor specified in the framework configuration file
 
-        Having an Tools/editor configuration key is optional but must be valid when provided
+        Having an Tools/editor configuration key is optional but must be valid
+            when provided.
         The test is performed with the linux "which" command.
 
         :raises: ConfEditorInvalid if a specified editor is not valid
-        :returns: str of the command to run the editor or None if no editor are specified
+        :returns: str of the command to run the editor
+                  None if no editor are specified
         """
         editor = None
         try:
@@ -107,10 +117,15 @@ class AppModel(object):
                 try:
                     subprocess.check_output(['which', editor])
                 except subprocess.CalledProcessError:
-                    raise ex.ConfEditorInvalid('{} [{}] is not a valid editor'.format(self.err_header_editor, editor))
+                    raise ex.ConfEditorInvalid(
+                        '{} [{}] is not a valid editor'.format(
+                            self.err_header_editor,
+                            editor)
+                    )
             else:
                 raise ex.ConfEditorNone(
-                    'No editor configured. Please add one in your [{}] configuration file.{}'.format(
+                    'No editor configured. '
+                    'Please add one in your [{}] configuration file.{}'.format(
                         self.get_config_file_path(),
                         '\ne.g:\n    [Tools]\n    editor=vim'
                     )
@@ -120,14 +135,16 @@ class AppModel(object):
         return editor
 
     def get_packages(self, absolute=True):
-        """ Return all the pw packages path specified in the framework configuration file
+        """ Return all the pw packages path specified in the framework
+            configuration file
 
-        Tests are performed on the package paths to enforce the following properties:
-
+        Tests are performed on the package paths to enforce the following
+        properties:
         - this path must exists
         - it must be a folder
 
-        The corresponding exception are raised when one of these conditions is not met.
+        The corresponding exception are raised when one of these conditions
+        is not met.
 
         :raises: ConfPkgAbl, ConfPkgNotExists, ConfPkgNotDir, ConfPkgNone
         :returns: list of the package paths
@@ -135,29 +152,46 @@ class AppModel(object):
         try:
             l_pkg_path = []
             for p in self._config.options('Packages'):
-                path = path_ha.get_abs_path(self._config.get('Packages', p)) if absolute else p
-                pkg = pkg[:-1] if path.endswith('/') else path  # remove trailing / if exists
+                path = path_ha.get_abs_path(
+                    self._config.get('Packages', p)) if absolute else p
+                pkg = path[:-1] if path.endswith('/') else path
                 if not os.path.exists(pkg):
-                    raise ex.ConfPkgNotExists('{} - specified [{}] path does not exists'.format(self.err_header_pkg, pkg))
+                    raise ex.ConfPkgNotExists(
+                        '{} - specified [{}] path does not exists'.format(
+                            self.err_header_pkg, pkg)
+                    )
                 if not os.path.isdir(pkg):
-                    raise ex.ConfPkgNotDir('{} - specified [{}] must be a directory'.format(self.err_header_pkg, pkg))
+                    raise ex.ConfPkgNotDir(
+                        '{} - specified [{}] must be a directory'.format(
+                            self.err_header_pkg, pkg)
+                    )
                 l_pkg_path.append(path)
             if len(l_pkg_path) == 0:
-                raise ex.ConfPkgNone('{} - no packages are activated, you will not find any ability.'.format(self.err_header_pkg))
+                raise ex.ConfPkgNone(
+                    '{} - no packages are activated, you will not find '
+                    'any ability.'.format(self.err_header_pkg)
+                )
             return l_pkg_path
         except config_parser.NoSectionError:
-            raise ex.ConfPkgNone('{} - no packages are activated and the "Packages" section does not exist, you will not find any ability.'.format(self.err_header_pkg))
+            raise ex.ConfPkgNone(
+                '{} - no packages are activated and '
+                'the "Packages" section does not exist, '
+                'you will not find any ability.'.format(self.err_header_pkg)
+            )
 
     def get_dependencies(self):
-        """ Return all dependencies specified in the framework configuration file
+        """ Return all dependencies specified in the framework configuration
+        file.
 
-        These dependencies are paths to python modules that are supposed to be added to the PYTHONPATH.
+        These dependencies are paths to python modules that are supposed
+            to be added to the PYTHONPATH.
         The following tests are performed on them:
 
         - the path must exists
         - the path must point out a directory
 
-        The corresponding exception are raised when one of these conditions is not met.
+        The corresponding exception are raised when one of these conditions
+        is not met.
 
         :raises: ConfDepNotExists, ConfDepNotDir, ConfDepNone
         :returns: list of the dependency paths
@@ -167,10 +201,15 @@ class AppModel(object):
             for p in self._config.options('Dependencies'):
                 path = self._config.get('Dependencies', p)
                 if not os.path.exists(path):
-                    raise ex.ConfDepNotExists('{} - specified [{}] path does not exists'.format(self.err_header_dep, path))
+                    raise ex.ConfDepNotExists(
+                        '{} - specified [{}] path does not exists'.format(
+                            self.err_header_dep, path)
+                    )
                 if not os.path.isdir(path):
                     raise ex.ConfDepNotDir(
-                        '{} - specified [{}] path must point out a python module directory'.format(self.err_header_dep, path)
+                        '{} - specified [{}] path must point out '
+                        'a python module directory'.format(
+                            self.err_header_dep, path)
                     )
                 l_dep.append(path)
             return l_dep
@@ -182,11 +221,10 @@ class AppModel(object):
 
         :param path: path to the package as defined in the pw.ini file
         """
-        l = [
-            p
-            for p in self._config.options('Packages')
+        l_pkg = [
+            p for p in self._config.options('Packages')
             if self._config.get('Packages', p) == path
         ]
-        if len(l) == 0:
+        if len(l_pkg) == 0:
             return None
-        return l[0]
+        return l_pkg[0]

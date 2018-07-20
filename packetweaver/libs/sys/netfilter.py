@@ -1,4 +1,3 @@
-# coding: utf8
 import subprocess
 import os
 
@@ -52,7 +51,8 @@ def undrop_frames(iface, oface, mac_src, mac_dst):
     subprocess.call(cmd)
 
 
-def _iptc_build_drop_packets_rule(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge=False):
+def _iptc_build_drop_packets_rule(iface, oface, ip_src, ip_dst, proto,
+                                  port_src, port_dst, bridge=False):
     r = iptc.Rule()
 
     if bridge:
@@ -85,18 +85,21 @@ def _iptc_build_drop_packets_rule(iface, oface, ip_src, ip_dst, proto, port_src,
     return r
 
 
-def _iptc_drop_packets(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge=False):
+def _iptc_drop_packets(iface, oface, ip_src, ip_dst, proto,
+                       port_src, port_dst, bridge=False):
     if oface is not None:
         chain_name = 'FORWARD'
     else:
         chain_name = 'INPUT'
 
-    r = _iptc_build_drop_packets_rule(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge)
+    r = _iptc_build_drop_packets_rule(iface, oface, ip_src, ip_dst, proto,
+                                      port_src, port_dst, bridge)
     c = iptc.Chain(iptc.Table(iptc.Table.FILTER), chain_name)
     c.append_rule(r)
 
 
-def _cmd_build_drop_packets_rule(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge = False):
+def _cmd_build_drop_packets_rule(iface, oface, ip_src, ip_dst, proto,
+                                 port_src, port_dst, bridge=False):
     rule = []
 
     if bridge:
@@ -131,52 +134,67 @@ def _cmd_build_drop_packets_rule(iface, oface, ip_src, ip_dst, proto, port_src, 
     return rule
 
 
-def _cmd_drop_packets(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge=False):
+def _cmd_drop_packets(iface, oface, ip_src, ip_dst, proto,
+                      port_src, port_dst, bridge=False):
     if not isinstance(oface, type(None)):
         chain_name = 'FORWARD'
     else:
         chain_name = 'INPUT'
 
-    rule = _cmd_build_drop_packets_rule(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge)
+    rule = _cmd_build_drop_packets_rule(iface, oface, ip_src, ip_dst, proto,
+                                        port_src, port_dst, bridge)
     cmd = ['/sbin/iptables', '-t', 'filter', '-A', chain_name]
     subprocess.call(cmd + rule)
 
 
-def drop_packets(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge=False):
+def drop_packets(iface, oface, ip_src, ip_dst, proto,
+                 port_src, port_dst, bridge=False):
     if HAS_IPTC:
-        _iptc_drop_packets(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge)
+        _iptc_drop_packets(iface, oface, ip_src, ip_dst, proto,
+                           port_src, port_dst, bridge)
     else:
-        _cmd_drop_packets(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge)
+        _cmd_drop_packets(iface, oface, ip_src, ip_dst, proto,
+                          port_src, port_dst, bridge)
 
-def _iptc_undrop_packets(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge):
+
+def _iptc_undrop_packets(iface, oface, ip_src, ip_dst, proto,
+                         port_src, port_dst, bridge):
     if not isinstance(oface, type(None)):
         chain_name = 'FORWARD'
     else:
         chain_name = 'INPUT'
 
-    r = _iptc_build_drop_packets_rule(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge)
+    r = _iptc_build_drop_packets_rule(iface, oface, ip_src, ip_dst, proto,
+                                      port_src, port_dst, bridge)
     c = iptc.Chain(iptc.Table(iptc.Table.FILTER), chain_name)
     c.delete_rule(r)
 
 
-def _cmd_undrop_packets(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge):
+def _cmd_undrop_packets(iface, oface, ip_src, ip_dst, proto,
+                        port_src, port_dst, bridge):
     if not isinstance(oface, type(None)):
         chain_name = 'FORWARD'
     else:
         chain_name = 'INPUT'
 
-    rule = _cmd_build_drop_packets_rule(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge)
+    rule = _cmd_build_drop_packets_rule(iface, oface, ip_src, ip_dst, proto,
+                                        port_src, port_dst, bridge)
     cmd = ['/sbin/iptables', '-t', 'filter', '-D', chain_name]
     subprocess.call(cmd + rule)
 
 
-def undrop_packets(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge=False):
+def undrop_packets(iface, oface, ip_src, ip_dst, proto,
+                   port_src, port_dst, bridge=False):
     if HAS_IPTC:
-        _iptc_undrop_packets(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge)
+        _iptc_undrop_packets(iface, oface, ip_src, ip_dst, proto,
+                             port_src, port_dst, bridge)
     else:
-        _cmd_undrop_packets(iface, oface, ip_src, ip_dst, proto, port_src, port_dst, bridge)
+        _cmd_undrop_packets(iface, oface, ip_src, ip_dst, proto,
+                            port_src, port_dst, bridge)
 
-def _iptc_build_packet_extraction_rule(port, queue_num, src_mac=None, dport=False):
+
+def _iptc_build_packet_extraction_rule(port, queue_num,
+                                       src_mac=None, dport=False):
     r = iptc.Rule()
     r.set_protocol('tcp')
     if dport:
@@ -194,13 +212,16 @@ def _iptc_build_packet_extraction_rule(port, queue_num, src_mac=None, dport=Fals
 def _iptc_extract_packets(chain, port, src_mac, queue_num):
     c = iptc.Chain(iptc.Table(iptc.Table.FILTER), chain)  # TODO chain??
 
-    r = _iptc_build_packet_extraction_rule(port, queue_num, src_mac, dport=False)
+    r = _iptc_build_packet_extraction_rule(port, queue_num, src_mac,
+                                           dport=False)
     c.append_rule(r)
-    r = _iptc_build_packet_extraction_rule(port, queue_num, src_mac, dport=True)
+    r = _iptc_build_packet_extraction_rule(port, queue_num, src_mac,
+                                           dport=True)
     c.append_rule(r)
 
 
-def _cmd_build_packet_extraction_rule(port, queue_num, src_mac=None, dport=False):
+def _cmd_build_packet_extraction_rule(port, queue_num,
+                                      src_mac=None, dport=False):
     rule = ['-m', 'tcp']
     if dport:
         rule += ['--dport', str(port)]
@@ -217,10 +238,12 @@ def _cmd_build_packet_extraction_rule(port, queue_num, src_mac=None, dport=False
 def _cmd_extract_packets(chain, port, src_mac, queue_num):
     cmd = ['/sbin/iptables', '-t', 'filter' '-A', chain]
 
-    rule = _cmd_build_packet_extraction_rule(port, queue_num, src_mac, dport=False)
+    rule = _cmd_build_packet_extraction_rule(port, queue_num, src_mac,
+                                             dport=False)
     subprocess.call(cmd + rule)
 
-    rule = _cmd_build_packet_extraction_rule(port, queue_num, src_mac, dport=True)
+    rule = _cmd_build_packet_extraction_rule(port, queue_num, src_mac,
+                                             dport=True)
     subprocess.call(cmd + rule)
 
 
@@ -234,19 +257,25 @@ def extract_packets(chain, port, src_mac=None, queue_num=0):
 def _iptc_extract_packets_cancel(chain, src_mac, port, queue_num):
     c = iptc.Chain(iptc.Table(iptc.Table.FILTER), chain)
 
-    r = _iptc_build_packet_extraction_rule(port, queue_num, src_mac, dport=False)
+    r = _iptc_build_packet_extraction_rule(port, queue_num, src_mac,
+                                           dport=False)
     c.delete_rule(r)
-    r = _iptc_build_packet_extraction_rule(port, queue_num, src_mac, dport=True)
+    r = _iptc_build_packet_extraction_rule(port, queue_num, src_mac,
+                                           dport=True)
     c.delete_rule(r)
+
 
 def _cmd_extract_packets_cancel(chain, src_mac, port, queue_num):
     cmd = ['/sbin/iptables', '-t', 'filter', '-D', chain]
 
-    rule = _cmd_build_packet_extraction_rule(port, queue_num, src_mac, dport=False)
+    rule = _cmd_build_packet_extraction_rule(port, queue_num, src_mac,
+                                             dport=False)
     subprocess.call(cmd + rule)
 
-    rule = _cmd_build_packet_extraction_rule(port, queue_num, src_mac, dport=True)
+    rule = _cmd_build_packet_extraction_rule(port, queue_num, src_mac,
+                                             dport=True)
     subprocess.call(cmd + rule)
+
 
 def extract_packets_cancel(chain, src_mac, port, queue_num=0):
     if HAS_IPTC:

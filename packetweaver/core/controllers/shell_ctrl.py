@@ -1,4 +1,3 @@
-# coding: utf8
 import os
 import re
 import cmd
@@ -7,24 +6,20 @@ import readline
 import traceback
 import logging
 import packetweaver.core.controllers.exceptions as ex
-import packetweaver.libs.gen.pwcolor as pwc
 import packetweaver.core.models.module_list_model as module_list_model
-import packetweaver.core.models.modules.module_factory as module_factory
-import packetweaver.core.views.view_interface as view_interface
 import packetweaver.core.views.text as output
 import packetweaver.core.controllers.kbd_exception as kbd_exception
 import packetweaver.core.controllers.ctrl as ctrl
 import packetweaver.core.controllers.shell_use_ctrl as shell_use_ctrl
-import packetweaver.core.models.abilities.ability_base as ability_base
-import packetweaver.core.models.app_model as app_model
 
 
 class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
     def __init__(self, app_model, module_factory, view=output.Log()):
         """ Handle the interactive shell
 
-        This is the "level 1" shell, used to browse and select available abilities. It use the Cmd python library to
-        provide commands, help messages and completion.
+        This is the "level 1" shell, used to browse and select available
+        abilities. It use the Cmd python library to provide commands,
+        help messages and completion.
 
         A second shell is called by the do_use() method : ShellUseCtrl.
 
@@ -59,7 +54,8 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         except ex.ConfNone:
             l_pkg = []
         self._module_list_model = module_list_model.ModuleListModel(l_pkg)
-        _ = self._module_list_model.get_module_list()  # load the search result indexes with default values
+        # load the search result indexes with default values
+        self._module_list_model.get_module_list()
 
         signal.signal(signal.SIGINT, self._handle_ctrlc)
 
@@ -67,38 +63,41 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
             """
     {} ({}) - v.{}
     {}
-    
-    Use the 'help' or '?' command to discover available commands. 
+
+    Use the 'help' or '?' command to discover available commands.
     Use 'tab' to complete any part of your input.
-    
+
     """.format(self._app_model.app_name,
                self._app_model.app_name_abbrev,
                self._app_model.app_version,
                self._app_model.app_slogan)
 
     def _handle_ctrlc(self, _signum, _frame):
-        """ Handle sigint signal and use it to start a new shell line (through CtrlC exception) """
+        """ Handle sigint signal and use it to start a new shell line
+        (through CtrlC exception) """
         self._view.info("")
         raise kbd_exception.CtrlC()
 
     def _display_banner(self):
         # Display software banner, slogan and version
         self._view.delimiter()
-        c = lambda color_name, s: self._view.with_color(color_name, s.strip())
-        self._view.info("o-o  {}   o   o\n".format(c('blue', 'o')) +
-                        "|  |  \ / \ /   {}\n".format(
-                            self._app_model.app_name) +
-                        "{}-o    o   {}    {}\n".format(c('yellow', 'O'),
-                                                        c('green', 'o'),
-                                                        self._app_model.app_slogan) +
-                        "|               v.{}\n".format(
-                            self._app_model.app_version) +
-                        "o".format(self._app_model.app_name,
-                                   self._app_model.app_version))
+
+        def c(color_name, s):
+            return self._view.with_color(color_name, s.strip())
+
+        self._view.info(
+            "o-o  {}   o   o\n".format(c('blue', 'o')) +
+            "|  |  \ / \ /   {}\n".format(self._app_model.app_name) +
+            "{}-o    o   {}    {}\n".format(c('yellow', 'O'),
+                                            c('green', 'o'),
+                                            self._app_model.app_slogan) +
+            "|               v.{}\n".format(self._app_model.app_version) +
+            "o".format(self._app_model.app_name, self._app_model.app_version))
         self._view.delimiter()
 
     def process(self):
-        """ Run the interactive shell after displaying the software version information
+        """ Run the interactive shell after displaying the software version
+        information
 
         @raise SystemExit
         """
@@ -144,10 +143,15 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
             return
 
         for i, val in enumerate(l_abl):
-            color = '' if len(val.check_preconditions(self._module_factory)) == 0 else 'red'
+            if len(val.check_preconditions(self._module_factory)) == 0:
+                color = ''
+            else:
+                color = 'red'
             self._view.info(
                 self._view.with_color(
-                    color, '{} {} -- {}'.format(i+1, val.get_name(), ', '.join(val.get_tags()))
+                    color, '{} {} -- {}'.format(
+                        i + 1, val.get_name(), ', '.join(val.get_tags())
+                    )
                 )
             )
 
@@ -174,9 +178,13 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
                     )
                 )
                 return '', set(), True
-            return ' '.join(opts[:and_opt_index]), set(opts[and_opt_index + 1:]), True
+            return ' '.join(opts[:and_opt_index]), \
+                   set(opts[and_opt_index + 1:]), \
+                   True
         elif or_opt_index != -1:
-            return ' '.join(opts[:or_opt_index]), set(opts[or_opt_index+1:]), False
+            return ' '.join(opts[:or_opt_index]), \
+                   set(opts[or_opt_index + 1:]), \
+                   False
         return ' '.join(opts), set(), True
 
     def do_search(self, s=''):
@@ -204,7 +212,9 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
 
         pattern, tags, all_tags = self._split_search_pattern_and_tags(s)
         # search modules and display results
-        matching_abilities = self._module_list_model.search_module(pattern, tags, all_tags)
+        matching_abilities = self._module_list_model.search_module(pattern,
+                                                                   tags,
+                                                                   all_tags)
 
         if len(matching_abilities) == 0:
             self._view.warning('No matching ability found.')
@@ -213,21 +223,30 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         # highlight results and display them
         for i, match_abl in enumerate(matching_abilities):
             # display in red if the ability is missing a dependency
-            color = '' if len(match_abl.check_preconditions(self._module_factory)) == 0 else 'red'
+            color = '' if len(
+                match_abl.check_preconditions(self._module_factory)
+            ) == 0 else 'red'
 
             # highlight the search pattern ability names
             name_highlighted = re.sub(
-                pattern, self._view.with_effect('bold', pattern, color), match_abl.get_name(), flags=re.I
+                pattern,
+                self._view.with_effect('bold', pattern, color),
+                match_abl.get_name(),
+                flags=re.I
             )
 
             # underline matching tags
             tags_highlighted = ', '.join(match_abl.get_tags())
             for searched_tag in tags:
                 tags_highlighted = re.sub(
-                    searched_tag, self._view.with_effect('underline', searched_tag, color),
+                    searched_tag, self._view.with_effect('underline',
+                                                         searched_tag,
+                                                         color),
                     tags_highlighted, flags=re.I
                 )
-            self._view.info(self._view.with_color(color, '{} {} -- {}'.format(i+1, name_highlighted, tags_highlighted)))
+            self._view.info(self._view.with_color(color, '{} {} -- {}'.format(
+                i + 1, name_highlighted, tags_highlighted))
+            )
 
     def complete_search(self, text, line, begidx, endidx):
         """ Add completion to existing word and available tags after a '-a'
@@ -236,7 +255,10 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         if before_arg == -1:
             return None
         # list available tags after a "-t " or "-a "
-        if self._search_and_opt_name in line or self._search_or_opt_name in line:
+        if (
+                self._search_and_opt_name in line
+                or self._search_or_opt_name in line
+        ):
             # return a space right after a "-t" or "-a" when hitting <Tab>
             if line.endswith(self._search_and_opt_name):
                 return ['{} '.format(self._search_and_opt_name[1:])]
@@ -249,8 +271,9 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
                 if t.startswith(line[before_arg + 1:endidx])
             ]
         elif line[before_arg + 1:endidx] == '-':
-            return [self._search_and_opt_name[1:], self._search_or_opt_name[1:]]
-        
+            return [
+                self._search_and_opt_name[1:], self._search_or_opt_name[1:]
+            ]
         # list existing keyword
         return [
             t[begidx - before_arg - 1:]
@@ -280,9 +303,12 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         """
         try:
             index_normalized = self._normalize_search_index(index)
-            return self._module_list_model.get_module_by_last_search_id(index_normalized)
+            return self._module_list_model.get_module_by_last_search_id(
+                index_normalized
+            )
         except ValueError:
-            self._view.error('You must specify the ability index given by you last list/search command')
+            self._view.error('You must specify the ability index '
+                             'given by your last list/search command')
             return
 
     def do_conf(self, s=''):
@@ -300,7 +326,10 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
             self._view.warning('{}'.format(e))
             return
         self.do_shell('{} {}'.format(editor, conf_file_path))
-        self._view.warning('Please restart the framework in order to apply your modifications.')
+        self._view.warning(
+            'Please restart the framework '
+            'in order to apply your modifications.'
+        )
 
     def do_editor(self, s=''):
         """
@@ -310,7 +339,10 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         """
         ret = self._get_module_from_search_index(s)
         if ret is None:
-            self._view.error('Unable to find the module. Did you perform a list/search command beforehand?')
+            self._view.error(
+                'Unable to find the module. '
+                'Did you perform a list/search command beforehand?'
+            )
             return
         module, selected_ability = ret
         files = selected_ability.get_dep_file_paths(self._module_factory)
@@ -332,21 +364,32 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         """
         ret = self._get_module_from_search_index(s)
         if isinstance(ret, type(None)):
-            self._view.error('Unable to find the module. Did you perform a list/search command beforehand?')
+            self._view.error(
+                'Unable to find the module. '
+                'Did you perform a list/search command beforehand?'
+            )
             return
         module, ability = ret
         self.logger.debug('Loading ability [{}]'.format(ability.get_name()))
-        self.logger.debug('Loading associated module [{}]'.format(module.get_module_path()))
+        self.logger.debug('Loading associated module [{}]'.format(
+            module.get_module_path())
+        )
 
         if module is None:
             self._view.warning('No module found by that "id".')
             return
         try:
-            self.logger.debug('Checking preconditions of ability [{}]'.format(ability.get_name()))
-            l = ability.check_preconditions(self._module_factory)
-            if len(l) > 0:
-                self._view.error('\n'.join(l))
-                raise Exception('Ability cannot be started; some prerequisites are missing.')
+            self.logger.debug(
+                'Checking preconditions of ability [{}]'.format(
+                    ability.get_name())
+            )
+            l_dep = ability.check_preconditions(self._module_factory)
+            if len(l_dep) > 0:
+                self._view.error('\n'.join(l_dep))
+                raise Exception(
+                    'Ability cannot be started: '
+                    'some prerequisites are missing.'
+                )
 
             u = shell_use_ctrl.ShellUseCtrl(
                 module,
@@ -356,39 +399,52 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
                 view=self._view
             )
         except SyntaxError:
-            self._view.error("The module has NOT be loaded, please check your module's code")
+            self._view.error(
+                'The module has NOT be loaded, '
+                "please check your module's code"
+            )
             return
         except ImportError:
-            self._view.error("The module cannot be found, make sure it exists and is in a python package (__init__.py)")
+            self._view.error(
+                'The module cannot be found, '
+                'make sure it exists and is in a python package (__init__.py)'
+            )
             return
-        except:
+        except Exception:
             traceback.print_exc()
-            self._view.error("> Module could not be loaded, please check the previous error message")
+            self._view.error(
+                '> Module could not be loaded, '
+                'please check the previous error message'
+            )
             return
 
         # compact path in the module prompt if absolute path
         u.prompt = self._app_model.app_prompt_l2.format(
-            self._view.with_color("green", ability.get_name()))
+            self._view.with_color('green', ability.get_name()))
 
         while 1:
             try:
                 self.logger.debug('cd to "{}"'.format(u.get_pkg_abs_path()))
                 prev_dir = os.getcwd()
                 os.chdir(u.get_pkg_abs_path())
-                self.logger.debug('Running level 2 shell for [{}]'.format(ability.get_name()))
+                self.logger.debug(
+                    'Running level 2 shell for [{}]'.format(ability.get_name())
+                )
                 u.cmdloop()
             except kbd_exception.CtrlD:
                 self.logger.debug('Received Control+D exception')
-                self._view.info("")
+                self._view.info('')
                 break
             except kbd_exception.CtrlC:
                 self.logger.debug('Received Control+C exception -- passing')
                 pass
             finally:
-                self.logger.debug('Exiting. Restoring framework path "{}"'.format(prev_dir))
+                self.logger.debug(
+                    'Exiting. Restoring framework path "{}"'.format(prev_dir)
+                )
                 os.chdir(prev_dir)
                 self.logger.debug('Refreshing ability list')
-                _ = self._module_list_model.get_module_list()  # refresh modules list
+                self._module_list_model.get_module_list()
 
     def can_exit(self):
         """ Used to prevent exiting the shell """
@@ -399,7 +455,9 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         Exit the shell after saving the shell history
         You can also use the Ctrl-D shortcut
         """
-        self.logger.debug('Writing command history to {}'.format(self._history_path))
+        self.logger.debug(
+            'Writing command history to {}'.format(self._history_path)
+        )
         readline.write_history_file(self._history_path)
         raise kbd_exception.CtrlD()
 

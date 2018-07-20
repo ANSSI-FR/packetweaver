@@ -29,17 +29,23 @@ class ThreadedAbilityBase(threading.Thread, ability_base.AbilityBase):
         ability_base.AbilityBase.stop(self)
         with self._stop_condition:
             self._stop_condition.notify()
-            self.logger.debug('[{}] stop notified'.format(self._info.get_name()))
+            self.logger.debug('[{}] stop notified'.format(
+                self._info.get_name())
+            )
 
     def start(self, deepcopy=True, *args, **kwargs):
-        # deepcopy argument is necessary in case the arguments contains stuff cannot be deep-copied
-        # (some fd, for instance)
+        # deepcopy argument is necessary in case the arguments contains stuff
+        #  cannot be deep-copied (some fd, for instance)
         if deepcopy:
-            self.logger.debug('[{}] deep copy params'.format(self._info.get_name()))
+            self.logger.debug(
+                '[{}] deep copy params'.format(self._info.get_name())
+            )
             self._args = list(copy.deepcopy(args))
             self._kwargs = copy.deepcopy(kwargs)
         else:
-            self.logger.debug('[{}] straight use of params'.format(self._info.get_name()))
+            self.logger.debug(
+                '[{}] straight use of params'.format(self._info.get_name())
+            )
             self._args = args
             self._kwargs = kwargs
 
@@ -49,7 +55,9 @@ class ThreadedAbilityBase(threading.Thread, ability_base.AbilityBase):
 
     def run(self):
         try:
-            self.logger.debug('[{}] starting main'.format(self._info.get_name()))
+            self.logger.debug(
+                '[{}] starting main'.format(self._info.get_name())
+            )
             self._ret_value = self.main(*self._args, **self._kwargs)
             self.logger.debug('[{}] end of main'.format(self._info.get_name()))
             if not self._is_source():
@@ -74,7 +82,10 @@ class ThreadedAbilityBase(threading.Thread, ability_base.AbilityBase):
             return self._ret_value
 
     def __or__(self, other):
-        self.logger.debug('[{}] new out pipe to [{}]'.format(self._info.get_name(), other._info.get_name()))
+        self.logger.debug(
+            '[{}] new out pipe to [{}]'.format(self._info.get_name(),
+                                               other._info.get_name())
+        )
         input, output = multiprocessing.Pipe()
         other.add_in_pipe(output)
         self.add_out_pipe(input)
@@ -135,11 +146,17 @@ class ThreadedAbilityBase(threading.Thread, ability_base.AbilityBase):
                     yield msg
                 except (IOError, EOFError):
                     self._builtin_in_pipes.pop(self._builtin_in_pipes.index(p))
-        raise IOError('No input pipe for this ability instance: {}'.format(type(self).get_name()))
+        raise IOError(
+            'No input pipe for this ability instance: {}'.format(
+                type(self).get_name())
+        )
 
     def _recv(self):
         if len(self._builtin_in_pipes) == 0:
-            raise IOError('No input pipe for this ability instance: {}'.format(type(self).get_name()))
+            raise IOError(
+                'No input pipe for this ability instance: {}'.format(
+                    type(self).get_name())
+            )
 
         try:
             return next(self._recv_gen)
@@ -149,13 +166,19 @@ class ThreadedAbilityBase(threading.Thread, ability_base.AbilityBase):
 
     def _poll(self, timeout=0.1):
         if self._is_source():
-            raise IOError('No input pipe for this ability instance: {}'.format(type(self).get_name()))
+            raise IOError(
+                'No input pipe for this ability instance: {}'.format(
+                    type(self).get_name())
+            )
         r, w, x = select.select(self._builtin_in_pipes, [], [], timeout)
         return len(r) > 0
 
     def _send(self, msg):
         if self._is_sink():
-            raise IOError('No output pipe for this ability instance: {}'.format(type(self).get_name()))
+            raise IOError(
+                'No output pipe for this ability instance: {}'.format(
+                    type(self).get_name())
+            )
         for out in self._builtin_out_pipes:
             try:
                 out.send(msg)

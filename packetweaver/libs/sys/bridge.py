@@ -21,13 +21,18 @@ def in_bridge(ifname):
 
 def is_bridge(ifname):
     with pyroute2.IPDB() as ipdb:
-        return hasattr(ipdb.interfaces[ifname], 'kind') and ipdb.interfaces[ifname].kind == 'bridge'
+        return (
+            hasattr(ipdb.interfaces[ifname], 'kind')
+            and ipdb.interfaces[ifname].kind == 'bridge'
+        )
 
 
 def bridge_iface_together(*args, **kwargs):
     """
     :param args: list of interface names to add to the bridge
-    :param kwargs: keyword argument "bridge" allows the caller to specify to which bridge the interfaces must be added. If not specified, a new bridge is created, and named
+    :param kwargs: keyword argument "bridge" allows the caller to specify
+        to which bridge the interfaces must be added. If not specified, a new
+        bridge is created, and named
     :return:
     """
     with pyroute2.IPDB() as ipdb:
@@ -39,11 +44,14 @@ def bridge_iface_together(*args, **kwargs):
                 name = kwargs['bridge']
         else:
             # Get a new bridge identifier
-            l = ([int(x[len('pwbr'):]) for x in ipdb.interfaces.keys() if isinstance(x,str) and x.startswith('pwbr')])
-            if len(l) == 0:
+            l_existing_pw_br = (
+                [int(x[len('pwbr'):]) for x in ipdb.interfaces.keys()
+                 if isinstance(x, str)
+                 and x.startswith('pwbr')])
+            if len(l_existing_pw_br) == 0:
                 i = 0
             else:
-                i = max(l) + 1
+                i = max(l_existing_pw_br) + 1
             name = 'pwbr{}'.format(i)
 
         if len(name) > 0:
@@ -80,11 +88,3 @@ def create_dummy_if(ifname, ipaddr=None):
 
 
 remove_dummy_if = unbridge
-
-
-# if __name__=='__main__':
-#     bridge_iface_together('tititoto', 'tititoto2', 'tititoto3')
-#     bridge_iface_together('tititoto3', 'tititoto4')
-#     unbridge('pwbr0')
-#     bridge_iface_together('tititoto', 'tititoto2')
-

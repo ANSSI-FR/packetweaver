@@ -99,17 +99,17 @@ class Log(vi.ViewInterface):
         with Log.color('progress', self._output):
             self._output.write('{}{}'.format(t, '\n' if lf else ''))
 
-    def delimiter(self, title="", width=None, char="-"):
+    def delimiter(self, title='', width=None, char='-'):
         """ Display a graphic separator
 
         A line separator, composed by a repeated character will be displayed.
         If a title is provided, it will be displayed in the middle of it.
 
         Example 1:
-            delimiter("Options") will render :
+            delimiter('Options') will render :
             ----------------------- [ Options ] ------------------------
         Example 2:
-            delimiter("Options", width=1) will render :
+            delimiter('Options', width=1) will render :
              [ Options ]
 
         :param title: a title to display in the middle of the delimiter
@@ -119,7 +119,7 @@ class Log(vi.ViewInterface):
         """
         max_len = width if width else self.console_width
         if max_len < 0:
-            raise ValueError("Width must be > 0")
+            raise ValueError('Width must be > 0')
 
         if title:
             # calculate number of "char" to display
@@ -128,9 +128,9 @@ class Log(vi.ViewInterface):
             if nb < 1:
                 self.info(' [ {} ] '.format(title))
             else:
-                pad = ""
+                pad = ''
                 if 2 * nb + msg_len == max_len - 1:  # align when odd numbers
-                    pad = "-"
+                    pad = '-'
                 self.info('{} [ {} ] {}'.format(
                     char * nb, title,
                     char * nb + pad))

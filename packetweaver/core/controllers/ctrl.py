@@ -1,9 +1,9 @@
-# coding: utf8
 import packetweaver.core.controllers.exceptions as ex
 
 
 class Ctrl(object):
-    """ Implement the main logic of controllers, previsioning a pre_ and post_ method """
+    """ Implement the main logic of controllers,
+    previsioning a pre_ and post_ method """
 
     def __init__(self):
         pass

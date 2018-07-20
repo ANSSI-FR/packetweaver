@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf8
 import os
 import sys
 import argparse
@@ -20,7 +19,7 @@ def cd(newdir):
 
 
 def build_parser():
-    parser = argparse.ArgumentParser(description='''Packet Weaver''')
+    parser = argparse.ArgumentParser(description="""Packet Weaver""")
     parser.add_argument(
         '--config', '-c', action='store', type=str, default='pw.ini',
         dest='config_filename'
@@ -32,16 +31,19 @@ def build_parser():
             help_msg += ' (use command alias)'
         sp_run = sp.add_parser(cmd_name, help=help_msg)
         sp_run.add_argument(
-            '--ability', '-a', action='store', type=str, dest='ability_name',
-            required=True, help='Module path of a module to use during this run'
+            '--ability', '-a',
+            action='store', type=str, dest='ability_name', required=True,
+            help='Module path of a module to use during this run'
         )
         sp_run.add_argument(
-            '--package', '-p', action='store', type=str, dest='package_name',
-            required=True, help='Module path of a module to use during this run'
+            '--package', '-p',
+            action='store', type=str, dest='package_name', required=True,
+            help='Module path of a module to use during this run'
         )
 
     sp.add_parser('show', help='Display a list of available modules')
-    sp.add_parser('list', help='Display a list of available modules (show alias)')
+    sp.add_parser('list',
+                  help='Display a list of available modules (show alias)')
     sp.add_parser('update', help='Not yet implemented')
     sp.add_parser('interactive', help='Interactive mode')
     return parser
@@ -50,7 +52,8 @@ def build_parser():
 if __name__ == '__main__':
     args, rem_args = build_parser().parse_known_args()
 
-    # Change to the current directory to make relative path reference of internal files working (i.e: pw.ini)
+    # Change to the current directory to make relative path reference of
+    # internal files working (i.e: pw.ini)
     base_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
     with cd(base_dir):
         try:
