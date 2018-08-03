@@ -5,19 +5,15 @@ import inspect
 import os
 import pipes
 import sys
+import logging
 import readline
 import traceback
 import packetweaver.libs.sys.path_handling as path_ha
 import packetweaver.core.views.text as output
 import packetweaver.core.controllers.exceptions as ex
-import packetweaver.core.views.view_interface as view_interface
-import packetweaver.core.models.abilities.ability_base as ability_base
-import packetweaver.core.models.modules.ability_module as abl_module
-import packetweaver.core.models.modules.module_factory as module_factory
 import packetweaver.core.models.modules.module_option as module_option
 import packetweaver.core.controllers.ctrl as ctrl
 import packetweaver.core.controllers.kbd_exception as kbd_exception
-import packetweaver.core.models.app_model as app_model
 # for future python 3 compatibility
 if sys.version_info > (3, 0):
     import configparser as config_parser
@@ -37,8 +33,15 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
         :param view: a ViewsInterface subclass to handle the interface display
         """
         super(ShellUseCtrl, self).__init__()
+        self.logger = logging.getLogger(__name__)
         self._module = module
         self._ability = ability
+
+        self.logger.debug('Initialize [{}] in package "{}"'.format(
+            self._ability.get_name(),
+            self._module.get_module_path())
+        )
+
         self._app_model = app_model
         self._module_factory = module_factory
         self._set_new_module_inst()
@@ -47,6 +50,7 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
     def _set_new_module_inst(self, cur_mod_inst=None):
         new_mod_inst = self._module.get_ability_instance_by_name(self._ability.get_name(), self._module_factory)
         self._ability = type(new_mod_inst)
+        self.logger.debug('Set new module instance for [{}]'.format(self._ability.get_name()))
 
         if cur_mod_inst is not None:
             new_opt_list = new_mod_inst.get_option_list()
@@ -122,6 +126,7 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
         """ Method called by the do_run method """
         try:
             # Renew the current module because if we are re-running, we cannot start a thread twice!
+            self.logger.debug('Running ability [{}]'.format(self._module_inst.get_name()))
             self._set_new_module_inst(self._module_inst)
             self._module_inst.start()
             while not self._module_inst.is_stopped():

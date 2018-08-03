@@ -5,6 +5,7 @@ import cmd
 import signal
 import readline
 import traceback
+import logging
 import packetweaver.core.controllers.exceptions as ex
 import packetweaver.libs.gen.pwcolor as pwc
 import packetweaver.core.models.module_list_model as module_list_model
@@ -33,6 +34,8 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         super(ShellCtrl, self).__init__()
 
         self._view = view
+        self.logger = logging.getLogger(__name__)
+
         # documentation view customization
         self.ruler = "="
         self.doc_header = "Documented commands (type help <topic>):"
@@ -332,11 +335,14 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
             self._view.error('Unable to find the module. Did you perform a list/search command beforehand?')
             return
         module, ability = ret
+        self.logger.debug('Loading ability [{}]'.format(ability.get_name()))
+        self.logger.debug('Loading associated module [{}]'.format(module.get_module_path()))
 
         if module is None:
             self._view.warning('No module found by that "id".')
             return
         try:
+            self.logger.debug('Checking preconditions of ability [{}]'.format(ability.get_name()))
             l = ability.check_preconditions(self._module_factory)
             if len(l) > 0:
                 self._view.error('\n'.join(l))
@@ -366,16 +372,22 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
 
         while 1:
             try:
+                self.logger.debug('cd to "{}"'.format(u.get_pkg_abs_path()))
                 prev_dir = os.getcwd()
                 os.chdir(u.get_pkg_abs_path())
+                self.logger.debug('Running level 2 shell for [{}]'.format(ability.get_name()))
                 u.cmdloop()
             except kbd_exception.CtrlD:
+                self.logger.debug('Received Control+D exception')
                 self._view.info("")
                 break
             except kbd_exception.CtrlC:
+                self.logger.debug('Received Control+C exception -- passing')
                 pass
             finally:
+                self.logger.debug('Exiting. Restoring framework path "{}"'.format(prev_dir))
                 os.chdir(prev_dir)
+                self.logger.debug('Refreshing ability list')
                 _ = self._module_list_model.get_module_list()  # refresh modules list
 
     def can_exit(self):
@@ -387,6 +399,7 @@ class ShellCtrl(cmd.Cmd, ctrl.Ctrl):
         Exit the shell after saving the shell history
         You can also use the Ctrl-D shortcut
         """
+        self.logger.debug('Writing command history to {}'.format(self._history_path))
         readline.write_history_file(self._history_path)
         raise kbd_exception.CtrlD()
 

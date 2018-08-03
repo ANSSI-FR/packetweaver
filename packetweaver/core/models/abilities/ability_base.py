@@ -1,4 +1,5 @@
 import abc
+import logging
 import collections
 import copy
 import inspect
@@ -105,9 +106,11 @@ class AbilityBase(object):
         self._module_factory = module_factory
         self._view = view
         self._cached_opt_values = {}
+        self._ret_value = None
         self._alive = True
         self._started_status = False
         self._set_default_opts(default_opts)
+        self.logger = logging.getLogger(__name__)
 
     def _set_default_opts(self, default_opts=None):
         self._set_options(type(self)._opt_hash)
@@ -338,7 +341,6 @@ class AbilityBase(object):
             return self._cached_opt_values[name][0]
         return self._cached_opt_values[name]
 
-
     @classmethod
     def get_metadata(cls):
         return copy.deepcopy(cls._info)
@@ -417,14 +419,17 @@ class AbilityBase(object):
 
     def _start_wait_and_stop(self, abl_lst):
         for abl in abl_lst:
+            self.logger.debug('[{}] calling start'.format(abl._info.get_name()))
             abl.start()
 
         self._wait()
 
         for abl in abl_lst:
+            self.logger.debug('[{}] calling stop'.format(abl._info.get_name()))
             abl.stop()
 
         for abl in abl_lst:
+            self.logger.debug('[{}] joining'.format(abl._info.get_name()))
             abl.join()
 
     """ Emulate a thread/process (duck typing)
@@ -436,10 +441,16 @@ class AbilityBase(object):
 
     def start(self, *args, **kwargs):
         self._started_status = True
+        self.logger.debug('[{}] - status is {}'.format(
+            self._info.get_name(),
+            self._started_status))
         try:
+            self.logger.debug('[{}] - start of main'.format(self._info.get_name()))
             self._ret_value = self.main(*args, **kwargs)
+            self.logger.debug('[{}] - end of main'.format(self._info.get_name()))
         finally:
             self._started_status = False
+            self.logger.debug('[{}] - set status {} '.format(self._info.get_name(), self._started_status))
 
     def stop(self):
         self._alive = False
