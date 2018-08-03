@@ -1,31 +1,38 @@
 .. _run-tests-label:
 
+Testing
+=======
+
+Debug the framework
+-------------------
+
+Many logs are available in the PacketWeaver source code. If you need to
+get more insight on the internal functioning, you can lower down the
+logging framework logging level by running it with the following command::
+
+    ./run_pw --log DEBUG interactive
+
+The default logging levels are listed when issuing a simple::
+
+    ./run_pw -h
+
 Non-regression tests
-====================
+--------------------
 
-The test coverage of the framework is one of the main current task. We use the `Pytest <https://docs.pytest.org/en/latest/>`_
-library to perform standard unit tests on the framework core, and `Mypy
-<http://mypy-lang.org/>`_ setup is on the way to perform static typing analysis.
+Unit tests are developed using the `Pytest <https://docs.pytest.org/en/latest/>` library,
+and managed using the `Tox <https://tox.readthedocs.io/en/latest/>` utility.
 
-All the tests may be run with the *packetweaver/run_pw_tests* script.
+When running the tests, Tox will automatically create and install in a virtualenv the required libraries, such as Pytest
+for example. This means Tox is the only dependence required::
 
-Installing the testing toolset
-------------------------------
+    python3 -m pip install tox
 
-As mentioned above, you only need to install pytest, with an extension used to
-perform test code coverage analysis::
 
-    pip install pytest pytest-cov
+Running the most complete test procedure is done by running the `tox` command in same folder as the `tox.ini` file.
+It will execute all the available unit tests, generated a coverage report and check the code for pep8 conformance.
 
-Unit tests
-----------
+To avoid running all of them, several environments have been defined. They can be run independently, using
+the following commands::
 
-These are the classic unit tests that help enforce the correct internal functioning of the framework.
-
-The main script encapsulates two pytest functionalities: one to run a coverage test and another to start a python debugger
-in case of a test failure. The corresponding commands may be used like this::
-
-    ./run_pw_tests utest        # run all the pytest tests
-    ./run_pw_tests utest --cov  # run a code covering test and display its report
-    ./run_pw_tests utest --pdb  # run a debugger in case of test failure
-    ./run_pw_tests utest --cov --pdb
+    tox -e flake8
+    tox -e …
