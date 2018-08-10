@@ -8,7 +8,7 @@ import packetweaver.core.models.modules.module_factory
 import packetweaver.core.models.modules.module_option as module_option
 import packetweaver.core.models.status as status
 import packetweaver.core.views.text as output
-import packetweaver.core.views.view_interface as view_interface
+
 
 OptionTemplateEntry = collections.namedtuple(
     'OptionTemplateEntry', ['validator', 'entry']
@@ -103,7 +103,6 @@ class AbilityBase(object):
         type(self)._init_internal_dependencies()
         super(AbilityBase, self).__init__()
         self._module_factory = module_factory
-        self._info = {}
         self._view = view
         self._cached_opt_values = {}
         self._alive = True
