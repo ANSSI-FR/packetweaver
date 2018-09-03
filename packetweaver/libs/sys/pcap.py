@@ -6,19 +6,36 @@ except ImportError:
 
 import threading
 import multiprocessing
+import traceback
+import time
+import logging
+logger_pcap = logging.getLogger(__name__)
 
-def capture_thread(stop_evt, pkts_pipe, iface, bpf=None):
+
+def capture_thread(stop_evt, pkts_pipe, iface,
+                   bpf=None, buf_access_timeout=0.01):
     try:
+        logger_pcap.debug('Pcapy open_live call')
         h = pcapy.open_live(iface, 65535, 1, 1)
+        # making h.next() call non blocking, (hdr=None, _) is returned instead
+        h.setnonblock(1)
         if not isinstance(bpf, type(None)):
             h.setfilter(bpf)
-
         while not stop_evt.is_set():
             hdr, payld = h.next()
-            if not isinstance(hdr, type(None)):
-                pkts_pipe.send(payld)
+            # do not block on an empty packet buffer
+            if hdr is not None:
+                if not isinstance(hdr, type(None)):
+                    pkts_pipe.send(payld)
+            else:
+                # wait some times before trying to access the buffer again
+                time.sleep(buf_access_timeout)
+        h.close()
+        logger_pcap.debug('Pcapy open_live ended')
         h = None
     except(EOFError, IOError):
+        logger_pcap.warning('Pcapy capture traffic failed')
+        traceback.print_exc()
         stop_evt.set()
 
 
@@ -30,7 +47,9 @@ def start_capture(iface, bpf=None, in_pkt_pipe=None):
     else:
         pp = None
         t = threading.Thread(target=capture_thread, name="Packet Capture", args=(stop_evt, in_pkt_pipe, iface, bpf))
+
     t.start()
+    logger_pcap.debug('Run pcapy capture thread on iface [{}]'.format(iface))
     return t, stop_evt, pp
 
 
@@ -54,6 +73,7 @@ def send_raw_traffic(iface, poller, receiver):
     t.start()
 
     return t, stop_evt
+
 
 if __name__ == '__main__':
     import signal
