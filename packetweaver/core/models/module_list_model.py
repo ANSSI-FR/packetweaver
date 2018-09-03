@@ -13,7 +13,7 @@ class ModuleListModel(object):
     def __init__(self, paths, view=output.Log()):
         """ The model used to interact with the list of available modules
 
-        Note: module is the model used to interact with the real ability. See ModuleModel
+        Note: module is the model used to interact with the real ability. See AbilityModule
 
         :param paths: list of paths to the activated ability packages
         :param view: a ViewInterface subclass to handle user interface display
