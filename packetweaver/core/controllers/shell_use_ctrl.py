@@ -433,7 +433,7 @@ class ShellUseCtrl(cmd.Cmd, ctrl.Ctrl):
             pass
 
         for key, val in options.items():
-            cp.set('Configuration', key, val)
+            cp.set('Configuration', str(key), str(val))
 
         cp.write(open(filename, 'w'))
         self._view.info('Current option values have been saved to {}.'.format(filename))
