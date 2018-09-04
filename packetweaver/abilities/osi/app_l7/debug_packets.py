@@ -1,4 +1,3 @@
-# coding: utf8
 import packetweaver.core.ns as ns
 
 

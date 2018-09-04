@@ -1,31 +1,31 @@
-# coding: utf8
-from packetweaver.core.ns import *
+from packetweaver.core import ns
 
 try:
-    import numpy
-    HAS_NUMPY = True
+    import unknown
+    HAS_UNKNOWN = True
 except ImportError:
-    HAS_NUMPY = False
+    HAS_UNKNOWN = False
 
 
-class Ability(AbilityBase):
-    _info = AbilityInfo(
+class Ability(ns.AbilityBase):
+    _info = ns.AbilityInfo(
         name='Detect leaks',
-        description='Just a quick demo that when a module is missing, you can use this ability.'
+        description='Just a quick demo that when a module is missing, '
+                    'you can use this ability.'
     )
 
     _option_list = [
 
     ]
 
-
     @classmethod
     def check_preconditions(cls, module_factory):
-        l = []
-        if not HAS_NUMPY:
-            l.append('Numpy support missing or broken. Please install Numpy or proceed to an update.')
-        l += super(Ability, cls).check_preconditions(module_factory)
-        return l
+        l_dep = []
+        if not HAS_UNKNOWN:
+            l_dep.append('Numpy support missing or broken. '
+                         'Please install Numpy or proceed to an update.')
+        l_dep += super(Ability, cls).check_preconditions(module_factory)
+        return l_dep
 
     def main(self):
         pass

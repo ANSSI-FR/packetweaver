@@ -1,6 +1,3 @@
-# coding: utf8
-import threading
-
 import packetweaver.core.ns as ns
 
 
@@ -26,6 +23,8 @@ class Ability(ns.ThreadedAbilityBase):
                     if s[0] in demux:
                         demux[s[0]].send(s[1:])
                     elif not quiet:
-                        self._view.warning('Invalid prefix: {0:1s}'.format(s[0]))
+                        self._view.warning(
+                            'Invalid prefix: {0:1s}'.format(s[0])
+                        )
         except (IOError, EOFError):
             pass

@@ -1,4 +1,3 @@
-# coding: utf8
 import packetweaver.core.ns as ns
 import struct
 
@@ -18,20 +17,26 @@ except ImportError:
 
 class Ability(ns.ThreadedAbilityBase):
     _option_list = [
-        ns.PathOpt(
-            'fake_zone', must_exist=True, readable=True, is_dir=False,
-            comment="Zone file containing the names for which a lie must be returned."
-        ),
-        ns.PathOpt(
-            'policy_zone', must_exist=True, readable=True, is_dir=False, optional=True,
-            comment="Zone file containing the policy to apply to incoming requests. If no match is found, there is an implicit FAKE policy"
-        ),
-        ns.BoolOpt('resolver', default=False, comment='Whether we are spoofing a resolver (or an authoritative server'),
-        ns.BoolOpt(
-            'authentic', default=False,
-            comment='If resolver is true, our answers are flagged as authentic, unless checking is disabled'
-        ),
-        ns.BoolOpt('quiet', default=True, comment='Whether we should log stuff on error'),
+        ns.PathOpt('fake_zone',
+                   must_exist=True, readable=True, is_dir=False,
+                   comment="Zone file containing the names for which "
+                           "a lie must be returned."),
+        ns.PathOpt('policy_zone',
+                   must_exist=True, readable=True, is_dir=False, optional=True,
+                   comment="Zone file containing the policy to apply to "
+                           "incoming requests. If no match is found, there is "
+                           "an implicit FAKE policy"),
+        ns.BoolOpt('resolver',
+                   default=False,
+                   comment='Whether we are spoofing a resolver '
+                           '(or an authoritative server'),
+        ns.BoolOpt('authentic',
+                   default=False,
+                   comment='If resolver is true, our answers are flagged as '
+                           'authentic, unless checking is disabled'),
+        ns.BoolOpt('quiet',
+                   default=True,
+                   comment='Whether we should log stuff on error'),
     ]
 
     _info = ns.AbilityInfo(
@@ -52,33 +57,42 @@ class Ability(ns.ThreadedAbilityBase):
     PASSTHRU_POLICY = 5
 
     DECISION_DICT = {
-        NODATA_POLICY: lambda self, *args, **kwargs: self._send_nodata(*args, **kwargs),
-        NXDOMAIN_POLICY: lambda self, *args, **kwargs: self._send_nxdomain(*args, **kwargs),
-        SERVFAIL_POLICY: lambda self, *args, **kwargs: self._send_servfail(*args, **kwargs),
-        TCP_POLICY: lambda self, *args, **kwargs: self._send_truncated(*args, **kwargs),
-        PASSTHRU_POLICY: lambda self, *args, **kwargs: self._send_passthru(*args, **kwargs),
-        FAKE_POLICY: lambda self, *args, **kwargs: self._send_fake(*args, **kwargs),
+        NODATA_POLICY: lambda self, *args, **kwargs: self._send_nodata(
+            *args, **kwargs),
+        NXDOMAIN_POLICY: lambda self, *args, **kwargs: self._send_nxdomain(
+            *args, **kwargs),
+        SERVFAIL_POLICY: lambda self, *args, **kwargs: self._send_servfail(
+            *args, **kwargs),
+        TCP_POLICY: lambda self, *args, **kwargs: self._send_truncated(
+            *args, **kwargs),
+        PASSTHRU_POLICY: lambda self, *args, **kwargs: self._send_passthru(
+            *args, **kwargs),
+        FAKE_POLICY: lambda self, *args, **kwargs: self._send_fake(
+            *args, **kwargs),
     }
 
     @classmethod
     def check_preconditions(cls, module_factory):
-        l = []
+        l_dep = []
         if not HAS_DNSPYTHON:
-            l.append('DNSPython support missing or broken. Please install dnspython or proceed to an update.')
-        l += super(Ability, cls).check_preconditions(module_factory)
-        return l
+            l_dep.append('DNSPython support missing or broken. '
+                         'Please install dnspython or proceed to an update.')
+        l_dep += super(Ability, cls).check_preconditions(module_factory)
+        return l_dep
 
     def _parse_zones(self):
         try:
-            pz = zone_parser.from_file(self.policy_zone, origin='.', relativize=False, check_origin=False)
-        except:
+            pz = zone_parser.from_file(self.policy_zone, origin='.',
+                                       relativize=False, check_origin=False)
+        except Exception:
             if not self.quiet:
                 self._view.error('Invalid policy zone file')
             return None, None
 
         try:
-            fz = zone_parser.from_file(self.fake_zone, origin='.', relativize=False, check_origin=False)
-        except:
+            fz = zone_parser.from_file(self.fake_zone, origin='.',
+                                       relativize=False, check_origin=False)
+        except Exception:
             if not self.quiet:
                 self._view.error('Invalid fake zone file')
             return None, None
@@ -94,12 +108,14 @@ class Ability(ns.ThreadedAbilityBase):
                     pass
                 if found_rrset is None:
                     try:
-                        found_rrset = zone.find_rrset(name, dns.rdatatype.CNAME)
+                        found_rrset = zone.find_rrset(name,
+                                                      dns.rdatatype.CNAME)
                     except KeyError:
                         pass
                 if found_rrset is None:
                     try:
-                        found_rrset = zone.find_rrset(name, dns.rdatatype.DNAME)
+                        found_rrset = zone.find_rrset(name,
+                                                      dns.rdatatype.DNAME)
                     except KeyError:
                         pass
                 if found_rrset is not None:
@@ -117,9 +133,11 @@ class Ability(ns.ThreadedAbilityBase):
             if dns_msg.flags & dns.flags.RD != 0:
                 dns_msg.flags |= dns.flags.RA
 
-            # If flag AD and authentic are both set, then nothing happens, and this is all good
+            # If flag AD and authentic are both set, then nothing happens,
+            # and this is all good
             if self.authentic:
-                if dns_msg.ednsflags & dns.flags.DO != 0 and dns_msg.flags & dns.flags.CD == 0:
+                if dns_msg.ednsflags & dns.flags.DO != 0 \
+                        and dns_msg.flags & dns.flags.CD == 0:
                     dns_msg.flags |= dns.flags.AD
             else:
                 dns_msg.flags &= (2 ** 11) - 1 - dns.flags.AD  # Revert AD byte
@@ -131,7 +149,9 @@ class Ability(ns.ThreadedAbilityBase):
         qdrrset = dns_msg.question[0]
         self._set_flags(dns_msg)
 
-        if qdrrset.rdtype in [dns.rdatatype.NS, dns.rdatatype.MX, dns.rdatatype.SRV]:
+        if qdrrset.rdtype in [dns.rdatatype.NS,
+                              dns.rdatatype.MX,
+                              dns.rdatatype.SRV]:
             if qdrrset.rdtype in [dns.rdatatype.NS, dns.rdatatype.SRV]:
                 names = [rr.target for rr in fake_rrset.items]
             elif qdrrset.rdtype == dns.rdatatype.MX:
@@ -140,11 +160,13 @@ class Ability(ns.ThreadedAbilityBase):
             addr_rrset = []
             for name in names:
                 try:
-                    addr_rrset.append(self._find_zone_match(fz, name, dns.rdatatype.A))
+                    addr_rrset.append(self._find_zone_match(
+                        fz, name, dns.rdatatype.A))
                 except KeyError:
                     pass
                 try:
-                    addr_rrset.append(self._find_zone_match(fz, name, dns.rdatatype.AAAA))
+                    addr_rrset.append(self._find_zone_match(
+                        fz, name, dns.rdatatype.AAAA))
                 except KeyError:
                     pass
             dns_msg.additional = addr_rrset
@@ -177,7 +199,10 @@ class Ability(ns.ThreadedAbilityBase):
         forged_soa = dns.rrset.from_text(
             name, 3600*3,
             dns.rdataclass.IN, dns.rdatatype.from_text('SOA'),
-            'ns1.{} hostmaster.{} 1 {} {} {} {}'.format(name.to_text(), name.to_text(), 3*3600, 3600, 86400*7, 3*3600)
+            'ns1.{} hostmaster.{} 1 {} {} {} {}'.format(name.to_text(),
+                                                        name.to_text(),
+                                                        3*3600, 3600,
+                                                        86400*7, 3*3600)
         )
         parsed.set_rcode(rcode)
         parsed.answer = []
@@ -244,23 +269,29 @@ class Ability(ns.ThreadedAbilityBase):
             return
 
         try:
-            rrset = self._find_zone_match(fz, parsed.question[0].name, parsed.question[0].rdtype)
+            rrset = self._find_zone_match(fz, parsed.question[0].name,
+                                          parsed.question[0].rdtype)
             if rrset.name.to_text().startswith('*'):
                 rrset.name = parsed.question[0].name
             self._fake_answer(fz, metadata, parsed, rrset)
         except KeyError:
             if not self.quiet:
-                self._view.error('Fake policy but not matching fake record. Dropping')
+                self._view.error(
+                    'Fake policy but not matching fake record. '
+                    'Dropping'
+                )
             return
 
     def _find_policy(self, pz, rrset):
         try:
-            policy_rrset = self._find_zone_match(pz, rrset.name, dns.rdatatype.TXT)
+            policy_rrset = self._find_zone_match(pz, rrset.name,
+                                                 dns.rdatatype.TXT)
             verdict = None
             for item in policy_rrset.items:
                 for string in item.strings:
                     rrtype, policy = string.split(' ')
-                    if rrtype == 'ANY' or dns.rdatatype.from_text(rrtype) == rrset.rdtype:
+                    if rrtype == 'ANY' \
+                            or dns.rdatatype.from_text(rrtype) == rrset.rdtype:
                         if policy == 'NXDOMAIN':
                             if rrtype == 'ANY':
                                 verdict = self.NXDOMAIN_POLICY
@@ -287,9 +318,15 @@ class Ability(ns.ThreadedAbilityBase):
     def _handle_query(self, metadata, data, fz, pz):
         try:
             dns_msg = message_parser.from_wire(data)
-        except (message_parser.ShortHeader, message_parser.TrailingJunk, dns.name.BadLabelType):
-            self._view.error('Error while parsing DNS message. Pass Thru policy applied.')
-            self.DECISION_DICT[self.PASSTHRU_POLICY](self, fz, metadata=metadata, raw=data)
+        except (message_parser.ShortHeader,
+                message_parser.TrailingJunk,
+                dns.name.BadLabelType):
+            self._view.error(
+                'Error while parsing DNS message. '
+                'Pass Thru policy applied.')
+            self.DECISION_DICT[self.PASSTHRU_POLICY](self, fz,
+                                                     metadata=metadata,
+                                                     raw=data)
             return
 
         # Figuring out which policy to apply
@@ -297,7 +334,8 @@ class Ability(ns.ThreadedAbilityBase):
         if verdict is None:
             self._view.error('Could not determine a verdict. Dropping.')
             return
-        self.DECISION_DICT[verdict](self, fz, metadata=metadata, parsed=dns_msg)
+        self.DECISION_DICT[verdict](self, fz, metadata=metadata,
+                                    parsed=dns_msg)
 
     def main(self):
         fz, pz = self._parse_zones()

@@ -1,21 +1,24 @@
-# coding: utf8
-from packetweaver.core.ns import *
+from packetweaver.core import ns
 
 
-class Ability(ThreadedAbilityBase):
-    _info = AbilityInfo(
+class Ability(ns.ThreadedAbilityBase):
+    _info = ns.AbilityInfo(
         name='Demo info',
         description='Demonstrate all available info metadata',
-        tags=['my_custom_tag', Tag.EXAMPLE],
-        authors=['John Doe (john.doe@nowhere.com)', 'Bob Eau (bob.eau@nowhere.com)'],
+        tags=['my_custom_tag', ns.Tag.EXAMPLE],
+        authors=['John Doe (john.doe@nowhere.com)',
+                 'Bob Eau (bob.eau@nowhere.com)'],
         references=[
-            ['PacketWeaver online documentation', 'https://packetweaver.readthedocs.io/'],
-            ['PacketWeaver source code', 'https://github.com/ANSSI-FR/packetweaver']
+            ['PacketWeaver online documentation',
+             'https://packetweaver.readthedocs.io/'],
+            ['PacketWeaver source code',
+             'https://github.com/ANSSI-FR/packetweaver']
                     ],
         diffusion='public',
-        reliability=Reliability.RELIABLE,
-        type=AbilityType.STANDALONE
+        reliability=ns.Reliability.RELIABLE,
+        type=ns.AbilityType.STANDALONE
     )
 
     def main(self):
-        self._view.info('Demonstrates the info metadata (run > info to display them).')
+        self._view.info('Demonstrates the info metadata '
+                        '(run > info to display them).')

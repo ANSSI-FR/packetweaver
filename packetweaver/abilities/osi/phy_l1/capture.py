@@ -1,12 +1,15 @@
-# coding: utf8
 import packetweaver.core.ns as ns
 import packetweaver.libs.sys.pcap as pcap_lib
 
 
 class Ability(ns.ThreadedAbilityBase):
     _option_list = [
-        ns.StrOpt('bpf', '', 'Filter to apply to received frames'),
-        ns.NICOpt(ns.OptNames.INPUT_INTERFACE, None, 'NIC to sniff on')
+        ns.StrOpt('bpf',
+                  default='',
+                  comment='Filter to apply to received frames'),
+        ns.NICOpt(ns.OptNames.INPUT_INTERFACE,
+                  default=None,
+                  comment='NIC to sniff on')
     ]
 
     _info = ns.AbilityInfo(
@@ -19,20 +22,24 @@ class Ability(ns.ThreadedAbilityBase):
 
     @classmethod
     def check_preconditions(cls, module_factory):
-        l = []
+        l_dep = []
         if not ns.HAS_PCAPY:
-            l.append('Pcapy support missing or broken. Please install pcapy or proceed to an update.')
-        l += super(Ability, cls).check_preconditions(module_factory)
-        return l
+            l_dep.append(
+                'Pcapy support missing or broken. '
+                'Please install pcapy or proceed to an update.')
+        l_dep += super(Ability, cls).check_preconditions(module_factory)
+        return l_dep
 
     def main(self):
-        l = []
+        l_threads = []
         for out in self._builtin_out_pipes:
-            thr, cap_stop_evt, _ = pcap_lib.start_capture(self.interface, self.bpf, out)
-            l.append((thr, cap_stop_evt))
+            thr, cap_stop_evt, _ = pcap_lib.start_capture(
+                self.interface, self.bpf, out
+            )
+            l_threads.append((thr, cap_stop_evt))
 
         self._wait()
 
-        for t in l:
+        for t in l_threads:
             t[1].set()
             t[0].join()

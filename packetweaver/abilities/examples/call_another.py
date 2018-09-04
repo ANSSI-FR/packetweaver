@@ -1,16 +1,19 @@
-# coding: utf8
-from packetweaver.core.ns import *
+from packetweaver.core import ns
 
 
-class Ability(AbilityBase):
-    _info = AbilityInfo(
+class Ability(ns.AbilityBase):
+    _info = ns.AbilityInfo(
         name='Call another Ability',
         description='Demonstrate how to call synchronously another ability',
     )
     _option_list = [
-        ChoiceOpt('option', ['normal', 'bypass_cache'], 'normal', 'Define if cache must be bypassed when using generators (except "nb")'),
-        StrOpt('msg', 'I was called by another ability', 'Message we want to see in our called ability'),
-        NumOpt('nb', 3, 'Times to display everything'),
+        ns.ChoiceOpt('option', ['normal', 'bypass_cache'],
+                     default='normal',
+                     comment='Define if cache must be bypassed when using '
+                             'generators (except "nb")'),
+        ns.StrOpt('msg', default='I was called by another ability',
+                  comment='Message we want to see in our called ability'),
+        ns.NumOpt('nb', default=3, comment='Times to display everything'),
 
     ]
 
@@ -18,7 +21,10 @@ class Ability(AbilityBase):
 
     def main(self, **kwargs):
         # Parameters of the called ability can be set in different way
-        abl = self.get_dependency('abl_demo_opt', nb=self.nb, ip_dst='RandIP6', msg=self.msg)
+        abl = self.get_dependency('abl_demo_opt',
+                                  nb=self.nb,
+                                  ip_dst='RandIP6',
+                                  msg=self.msg)
         abl.port_dst = 42
         abl.option = self.option
         abl.set_opt("path", "/bin/true")

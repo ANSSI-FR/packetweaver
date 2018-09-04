@@ -1,4 +1,3 @@
-# coding: utf8
 import packetweaver.core.ns as ns
 try:
     import scapy.layers.l2
@@ -10,9 +9,10 @@ except ImportError:
 
 class Ability(ns.ThreadedAbilityBase):
     _option_list = [
-        ns.PathOpt(
-            ns.OptNames.PATH_SRC, comment='Pcap file from which the packets are read', must_exist=True, readable=True
-        )
+        ns.PathOpt(ns.OptNames.PATH_SRC,
+                   comment='Pcap file from which the packets are read',
+                   must_exist=True,
+                   readable=True)
     ]
 
     _info = ns.AbilityInfo(
@@ -42,8 +42,8 @@ class Ability(ns.ThreadedAbilityBase):
 
     @classmethod
     def check_preconditions(cls, module_factory):
-        l = []
+        l_dep = []
         if not HAS_SCAPY:
-            l.append('Scapy support missing or broken.')
-        l += super(Ability, cls).check_preconditions(module_factory)
-        return l
+            l_dep.append('Scapy support missing or broken.')
+        l_dep += super(Ability, cls).check_preconditions(module_factory)
+        return l_dep
