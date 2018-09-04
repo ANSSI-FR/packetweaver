@@ -1,5 +1,6 @@
 # coding: utf8
 import packetweaver.core.ns as ns
+import packetweaver.libs.sys.pcap as pcap_lib
 
 
 class Ability(ns.ThreadedAbilityBase):
@@ -27,7 +28,7 @@ class Ability(ns.ThreadedAbilityBase):
     def main(self):
         l = []
         for out in self._builtin_out_pipes:
-            thr, cap_stop_evt, _ = ns.start_capture(self.interface, self.bpf, out)
+            thr, cap_stop_evt, _ = pcap_lib.start_capture(self.interface, self.bpf, out)
             l.append((thr, cap_stop_evt))
 
         self._wait()

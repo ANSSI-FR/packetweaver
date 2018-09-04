@@ -1,5 +1,6 @@
 # coding: utf8
 import packetweaver.core.ns as ns
+import packetweaver.libs.sys.pcap as pcap_lib
 
 
 class Ability(ns.ThreadedAbilityBase):
@@ -24,7 +25,7 @@ class Ability(ns.ThreadedAbilityBase):
         return l
 
     def main(self):
-        thr, stop_evt = ns.send_raw_traffic(self.outerface, self._poll, self._recv)
+        thr, stop_evt = pcap_lib.send_raw_traffic(self.outerface, self._poll, self._recv)
 
         self._wait()
 
