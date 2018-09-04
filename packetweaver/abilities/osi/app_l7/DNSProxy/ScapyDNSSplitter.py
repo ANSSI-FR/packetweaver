@@ -1,13 +1,10 @@
-# coding: utf8
 import packetweaver.core.ns as ns
 import struct
 
 try:
     import scapy.layers.dns as scapy_dns
     import scapy.layers.l2 as l2
-    import scapy.config
     import scapy.layers.inet as scapy_inet
-    import scapy.layers.inet6 as scapy_inet6
     HAS_SCAPY = True
 except ImportError:
     HAS_SCAPY = False
@@ -15,12 +12,15 @@ except ImportError:
 
 class Ability(ns.ThreadedAbilityBase):
     _option_list = [
-        ns.BoolOpt('quiet', default=True, comment='Whether we should log stuff on error'),
+        ns.BoolOpt('quiet',
+                   default=True,
+                   comment='Whether we should log stuff on error'),
     ]
 
     _info = ns.AbilityInfo(
         name='DNS Metadata Extractor',
-        description='Reads a Ether frame containing DNS and writes len(Ether to UDP/TCP) + Ether to UDP/TCP + DNS',
+        description='Reads a Ether frame containing DNS and writes '
+                    'len(Ether to UDP/TCP) + Ether to UDP/TCP + DNS',
         authors=['Florian Maury', ],
         tags=[ns.Tag.TCP_STACK_L5, ns.Tag.THREADED, ns.Tag.DNS],
         type=ns.AbilityType.COMPONENT
@@ -30,11 +30,12 @@ class Ability(ns.ThreadedAbilityBase):
 
     @classmethod
     def check_preconditions(cls, module_factory):
-        l = []
+        l_dep = []
         if not HAS_SCAPY:
-            l.append('Scapy support missing or broken. Please install scapy or proceed to an update.')
-        l += super(Ability, cls).check_preconditions(module_factory)
-        return l
+            l_dep.append('Scapy support missing or broken. '
+                         'Please install scapy or proceed to an update.')
+        l_dep += super(Ability, cls).check_preconditions(module_factory)
+        return l_dep
 
     def main(self):
         try:
@@ -58,7 +59,9 @@ class Ability(ns.ThreadedAbilityBase):
                         )
                     except Exception as e:
                         if not self.quiet:
-                            self._view.error('Unparsable frame. Dropping: ' + str(e))
+                            self._view.error(
+                                'Unparsable frame. Dropping: ' + str(e)
+                            )
                             print(s)
         except (IOError, EOFError):
             pass

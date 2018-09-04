@@ -1,4 +1,3 @@
-# coding: utf8
 import packetweaver.core.ns as ns
 import packetweaver.libs.sys.pcap as pcap_lib
 
@@ -10,7 +9,8 @@ class Ability(ns.ThreadedAbilityBase):
 
     _info = ns.AbilityInfo(
         name='Send Raw Frames',
-        description='Reads L2 Frames from the pipe and writes them on the specified NIC',
+        description='Reads L2 Frames from the pipe and '
+                    'writes them on the specified NIC',
         authors=['Florian Maury', ],
         tags=[ns.Tag.TCP_STACK_L1],
         type=ns.AbilityType.COMPONENT
@@ -18,14 +18,16 @@ class Ability(ns.ThreadedAbilityBase):
 
     @classmethod
     def check_preconditions(cls, module_factory):
-        l = []
+        l_dep = []
         if not ns.HAS_PCAPY:
-            l.append('Pcapy support missing or broken. Please install pcapy or proceed to an update.')
-        l += super(Ability, cls).check_preconditions(module_factory)
-        return l
+            l_dep.append('Pcapy support missing or broken. '
+                         'Please install pcapy or proceed to an update.')
+        l_dep += super(Ability, cls).check_preconditions(module_factory)
+        return l_dep
 
     def main(self):
-        thr, stop_evt = pcap_lib.send_raw_traffic(self.outerface, self._poll, self._recv)
+        thr, stop_evt = pcap_lib.send_raw_traffic(self.outerface, self._poll,
+                                                  self._recv)
 
         self._wait()
 

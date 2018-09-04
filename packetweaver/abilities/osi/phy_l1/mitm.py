@@ -1,42 +1,69 @@
-# encoding: utf-8
 import multiprocessing
 import packetweaver.core.ns as ns
 
 
 class Ability(ns.ThreadedAbilityBase):
     _option_list = [
-        ns.NICOpt(ns.OptNames.INPUT_INTERFACE, None, 'Sniffed interface'),
-        ns.NICOpt(ns.OptNames.OUTPUT_INTERFACE, None, 'Injection interface', optional=True),
-        ns.MacOpt(ns.OptNames.MAC_SRC, None, 'Source Mac', optional=True),
-        ns.MacOpt(ns.OptNames.MAC_DST, None, 'Destination Mac', optional=True),
-        ns.IpOpt(ns.OptNames.IP_SRC, None, 'Source IP', optional=True),
-        ns.IpOpt(ns.OptNames.IP_DST, None, 'Destination IP', optional=True),
-        ns.PortOpt(ns.OptNames.PORT_SRC, None, 'Source Port', optional=True),
-        ns.PortOpt(ns.OptNames.PORT_DST, None, 'Destination Port', optional=True),
+        ns.NICOpt(ns.OptNames.INPUT_INTERFACE,
+                  default=None, comment='Sniffed interface'),
+        ns.NICOpt(ns.OptNames.OUTPUT_INTERFACE,
+                  default=None, comment='Injection interface', optional=True),
+        ns.MacOpt(ns.OptNames.MAC_SRC,
+                  default=None, comment='Source Mac', optional=True),
+        ns.MacOpt(ns.OptNames.MAC_DST,
+                  default=None, comment='Destination Mac', optional=True),
+        ns.IpOpt(ns.OptNames.IP_SRC,
+                 default=None, comment='Source IP', optional=True),
+        ns.IpOpt(ns.OptNames.IP_DST,
+                 default=None, comment='Destination IP', optional=True),
+        ns.PortOpt(ns.OptNames.PORT_SRC,
+                   default=None, comment='Source Port', optional=True),
+        ns.PortOpt(ns.OptNames.PORT_DST,
+                   default=None, comment='Destination Port', optional=True),
         ns.OptionTemplateEntry(
-            lambda x: 0 == len([e for e in x.lower() if e not in "0123456789abcdef"]),
-            ns.StrOpt('ether_type', default='0800', comment='Filter by ether_type (hexa)', optional=True)
+            lambda x: 0 == len([e for e in x.lower()
+                                if e not in "0123456789abcdef"]),
+            ns.StrOpt('ether_type',
+                      default='0800',
+                      comment='Filter by ether_type (hexa)',
+                      optional=True)
         ),
-        ns.ChoiceOpt(ns.OptNames.L4PROTOCOL, ['tcp', 'udp'], comment='L4 Protocol over IP', optional=True),
-        ns.StrOpt('bridge', None, '''Specify the bridge to use for sniffing.
+        ns.ChoiceOpt(ns.OptNames.L4PROTOCOL, ['tcp', 'udp'],
+                     comment='L4 Protocol over IP', optional=True),
+        ns.StrOpt('bridge',
+                  default=None,
+                  comment="""Specify the bridge to use for sniffing.
             If the bridge does not exist, it will be created
-            and the input and output interfaces will be bridged together.''', optional=True),
-        ns.BoolOpt('mux', False, '''True if messages to send are prefixed with either \\x00 or \\xFF.
-        If a prefix is used, \\x00 means the message is to be sent through the sniffing interface (supposedly back to
-        the sender, but who knows?!). If the prefix values \\xFF, then the message is sent through the output interface.
-        If no prefix are used and this option values False, then messages are always sent through the ouput interface.
-        '''),
-        ns.BoolOpt('bidirectional', False, comment='Whether communications must be intercepted in one way or both ways.'),
-        ns.BoolOpt('quiet', True, comment='Whether to log errors.'),
+            and the input and output interfaces will be bridged together.""",
+                  optional=True),
+        ns.BoolOpt('mux',
+                   default=False,
+                   comment="""True if messages to send are prefixed with
+          either \\x00 or \\xFF.
+        If a prefix is used, \\x00 means the message is to be sent through the
+        sniffing interface (supposedly back to the sender, but who knows?!).
+        If the prefix values \\xFF, then the message is sent through
+        the output interface.
+        If no prefix are used and this option values False,
+        then messages are always sent through the output interface.
+        """),
+        ns.BoolOpt('bidirectional',
+                   default=False,
+                   comment='Whether communications must be intercepted '
+                           'in one way or both ways.'),
+        ns.BoolOpt('quiet',
+                   default=True,
+                   comment='Whether to log errors.'),
     ]
 
     _info = ns.AbilityInfo(
         name='Message Interceptor',
-        description=
-            '''This module sniffs some frames and reports them in the in_pkt channel.
-            Original frames might be dropped and new frames can be injected back in.
-            If an outerface is specified, the interface and the outerface are bridged together and intercepted frames
-            are dropped.''',
+        description=""" This module sniffs some frames and reports them in
+            the in_pkt channel.
+            Original frames might be dropped and new frames can be
+            injected back in.
+            If an outerface is specified, the interface and the outerface
+            are bridged together and intercepted frames are dropped.""",
         authors=['Florian Maury', ],
         tags=[ns.Tag.INTRUSIVE, ],
         type=ns.AbilityType.COMPONENT
@@ -46,49 +73,76 @@ class Ability(ns.ThreadedAbilityBase):
 
     @classmethod
     def check_preconditions(cls, module_factory):
-        l = []
+        l_dep = []
         if not ns.HAS_PYROUTE2:
-            l.append('PyRoute2 support missing or broken. Please install pyroute2 or proceed to an update.')
-        l += super(Ability, cls).check_preconditions(module_factory)
-        return l
+            l_dep.append('PyRoute2 support missing or broken. '
+                         'Please install pyroute2 or proceed to an update.')
+        l_dep += super(Ability, cls).check_preconditions(module_factory)
+        return l_dep
 
     def _check_parameter_consistency(self):
         """
-        Check whether all provided parameters are sensible, including whether related parameters have consistent values
+        Check whether all provided parameters are sensible, including whether
+        related parameters have consistent values
+
         :return: bool, True if parameter values are consistent
         """
-        if (self.port_src is not None or self.port_dst is not None) and self.protocol is None :
-            self._view.error('If src port or dst port are defined, a protocol must be specified.')
+        if (self.port_src is not None or self.port_dst is not None) \
+                and self.protocol is None:
+            self._view.error(
+                'If src port or dst port are defined, '
+                'a protocol must be specified.'
+            )
             return False
 
         if self.outerface is None and self.mux is True:
-            self._view.error('Message are supposed to be prefixed, but output interface is unspecified!?')
+            self._view.error(
+                'Message are supposed to be prefixed, '
+                'but output interface is unspecified!?'
+            )
             return False
 
         if self.interface is None:
             self._view.error('An input channel must be defined.')
             return False
 
-        if self.interface is not None and self.outerface is not None and self.interface == self.outerface:
-            self._view.error('Input interface and output interface cannot be the same. If you are sniffing and T-mode and you want to inject traffic back, please instanciate your own send_packet ability')
+        if self.interface is not None \
+                and self.outerface is not None \
+                and self.interface == self.outerface:
+            self._view.error(
+                'Input interface and output interface cannot be the same. '
+                'If you are sniffing and T-mode and you want to inject traffic'
+                ' back, please instanciate your own send_packet ability'
+            )
             return False
 
         br_name = ns.in_bridge(self.interface)
-        if br_name is not None and self.bridge is not None and br_name != self.bridge:
-            self._view.error('Input interface is already in a different bridge. You might be breaking something here :)')
+        if (br_name is not None and self.bridge is not None
+                and br_name != self.bridge):
+            self._view.error(
+                'Input interface is already in a different bridge. '
+                'You might be breaking something here :)'
+            )
             return False
 
         if ns.is_bridge(self.interface):
-            self._view.error('A bridge cannot be enslaved to another bridge. Input interface is a bridge.')
+            self._view.error(
+                'A bridge cannot be enslaved to another bridge. '
+                'Input interface is a bridge.'
+            )
             return False
 
         if self.outerface is not None and ns.is_bridge(self.outerface):
-            self._view.error('A bridge cannot be enslaved to another bridge. Output interface is a bridge.')
+            self._view.error(
+                'A bridge cannot be enslaved to another bridge. '
+                'Output interface is a bridge.'
+            )
             return False
 
         return True
 
-    def _build_bpf(self, mac_src, mac_dst, ether_type, ip_src, ip_dst, proto, port_src, port_dst):
+    def _build_bpf(self, mac_src, mac_dst, ether_type, ip_src, ip_dst,
+                   proto, port_src, port_dst):
         """ Builds a BPF from the provided parameters
         :param mac_src: Source MAC address (may be None)
         :param mac_dst: Destination MAC address (may be None)
@@ -97,7 +151,8 @@ class Ability(ns.ThreadedAbilityBase):
         :param proto: Protocol (either "udp" or "tcp" or None)
         :param port_src: Source Port (may be None)
         :param port_dst: Destination Port (may be None)
-        :param bidirectional: Bool telling whether the connection must be extracted in one way or in both ways
+        :param bidirectional: Bool telling whether the connection must be
+            extracted in one way or in both ways
         :return: the BPF expression as a string
         """
         bpf = set()
@@ -105,13 +160,20 @@ class Ability(ns.ThreadedAbilityBase):
 
         if self.bidirectional:
             if mac_src is not None and mac_dst is not None:
-                bpf.add('(ether src {} and ether dst {}) or (ether src {} and ether dst {})'.format(mac_src, mac_dst, mac_dst, mac_src))
+                bpf.add('(ether src {} and ether dst {}) '
+                        'or (ether src {} and ether dst {})'.format(
+                            mac_src, mac_dst,
+                            mac_dst, mac_src))
             elif mac_src is not None and mac_dst is None:
                 bpf.add('ether {}'.format(mac_src))
             elif mac_dst is not None and mac_src is None:
                 bpf.add('ether {}'.format(mac_src))
             if ip_src is not None and ip_dst is not None:
-                bpf.add('(src host {} and dst host {}) or (src host {} and dst host {})'.format(ip_src, ip_dst, ip_dst, ip_src))
+                bpf.add(
+                    '(src host {} and dst host {}) '
+                    'or (src host {} and dst host {})'.format(
+                        ip_src, ip_dst,
+                        ip_dst, ip_src))
             elif ip_src is not None and ip_dst is None:
                 bpf.add('host {}'.format(ip_src))
             elif ip_dst is not None and ip_src is None:
@@ -119,7 +181,11 @@ class Ability(ns.ThreadedAbilityBase):
             if proto is not None:
                 bpf.add(proto)
             if port_src is not None and port_dst is not None:
-                bpf.add('(src port {} and dst port {}) or (src port {} and dst port {})'.format(port_src, port_dst), port_dst, port_src)
+                bpf.add(
+                    '(src port {} and dst port {}) '
+                    'or (src port {} and dst port {})'.format(
+                        port_src, port_dst,
+                        port_dst, port_src))
             elif port_src is not None and port_dst is None:
                 bpf.add('port {}'.format(port_src))
             elif port_dst is not None and port_src is None:
@@ -156,19 +222,25 @@ class Ability(ns.ThreadedAbilityBase):
         )
 
         if self.outerface is not None:
-            # Bridge only the output NIC at the moment, to create the bridge but not let the traffic go through
-            bridge_name = ns.bridge_iface_together(self.outerface, bridge=self.bridge)
+            # Bridge only the output NIC at the moment,
+            # to create the bridge but not let the traffic go through
+            bridge_name = ns.bridge_iface_together(self.outerface,
+                                                   bridge=self.bridge)
 
             # Configure the firewall to drop relevant frames/packets
             fw_abl = self.get_dependency(
-                'netfilter', interface=self.interface, outerface=self.outerface, mac_src=self.mac_src,
-                mac_dst=self.mac_dst, ip_src=self.ip_src, ip_dst=self.ip_dst, protocol=self.protocol,
+                'netfilter',
+                interface=self.interface, outerface=self.outerface,
+                mac_src=self.mac_src, mac_dst=self.mac_dst,
+                ip_src=self.ip_src, ip_dst=self.ip_dst,
+                protocol=self.protocol,
                 port_src=self.port_src, port_dst=self.port_dst
             )
             fw_abl.start()
 
             # Configure the sniffing ability
-            sniff_abl = self.get_dependency('capture', bpf=bpf_expr, interface=bridge_name)
+            sniff_abl = self.get_dependency('capture', bpf=bpf_expr,
+                                            interface=bridge_name)
             self._transfer_out(sniff_abl)
             sniff_abl.start()
 
@@ -177,27 +249,38 @@ class Ability(ns.ThreadedAbilityBase):
             if not was_source:
                 if self.mux is True:
                     out1, in1 = multiprocessing.Pipe()
-                    send_raw_abl1 = self.get_dependency('sendraw', outerface=self.interface)
+                    send_raw_abl1 = self.get_dependency(
+                        'sendraw',
+                        outerface=self.interface
+                    )
                     send_raw_abl1.add_in_pipe(in1)
                     send_raw_abl1.start()
 
                     out2, in2 = multiprocessing.Pipe()
-                    send_raw_abl2 = self.get_dependency('sendraw', outerface=self.outerface)
+                    send_raw_abl2 = self.get_dependency(
+                        'sendraw',
+                        outerface=self.outerface
+                    )
                     send_raw_abl2.add_in_pipe(in2)
                     send_raw_abl2.start()
 
                     demux_abl = self.get_dependency('demux')
                     self._transfer_in(demux_abl)
-                    demux_abl.start(demux={'\x00': out1, '\xFF': out2}, quiet=self.quiet, deepcopy=False)
+                    demux_abl.start(demux={'\x00': out1, '\xFF': out2},
+                                    quiet=self.quiet,
+                                    deepcopy=False)
                 else:
-                    send_raw_abl = self.get_dependency('sendraw', outerface=self.outerface)
+                    send_raw_abl = self.get_dependency(
+                        'sendraw',
+                        outerface=self.outerface
+                    )
                     self._transfer_in(send_raw_abl)
                     send_raw_abl.start()
             else:
                 send_raw_abl = None
 
-            # Finally adds the input NIC to the bridge, now that relevant packets are dropped, to let through all
-            # irrelevant packets
+            # Finally adds the input NIC to the bridge, now that relevant
+            # packets are dropped, to let through all irrelevant packets
             ns.bridge_iface_together(self.interface, bridge=bridge_name)
 
             # Wait for the stop event
@@ -226,13 +309,16 @@ class Ability(ns.ThreadedAbilityBase):
 
         else:  # We are only acting on a single interface
             # Configure the sniffing ability
-            sniff_abl = self.get_dependency('capture', bpf=bpf_expr, interface=self.interface)
+            sniff_abl = self.get_dependency('capture',
+                                            bpf=bpf_expr,
+                                            interface=self.interface)
             self._transfer_out(sniff_abl)
             sniff_abl.start()
 
             was_source = self._is_source()
             if not was_source:
-                send_raw_abl = self.get_dependency('sendraw', outerface=self.interface)
+                send_raw_abl = self.get_dependency('sendraw',
+                                                   outerface=self.interface)
                 self._transfer_in(send_raw_abl)
                 send_raw_abl.start()
 

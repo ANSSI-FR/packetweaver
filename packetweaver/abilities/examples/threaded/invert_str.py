@@ -1,4 +1,3 @@
-# coding: utf8
 import packetweaver.core.ns as ns
 
 
@@ -16,9 +15,14 @@ class Ability(ns.ThreadedAbilityBase):
                 if self._poll(0.1):
                     s = self._recv()
                     if s == s[::-1]:
-                        self._view.warning('passing the palindrome "{}" to be displayed'.format(s))
+                        self._view.warning(
+                            'passing the palindrome "{}" '
+                            'to be displayed'.format(s)
+                        )
                     else:
-                        self._view.info('passing "{}" to be displayed'.format(s))
+                        self._view.info(
+                            'passing "{}" to be displayed'.format(s)
+                        )
                     # forward to the following piped abilities
                     self._send(s[::-1])
             except (IOError, EOFError):

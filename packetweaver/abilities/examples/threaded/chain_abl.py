@@ -1,4 +1,3 @@
-# coding: utf8
 import packetweaver.core.ns as ns
 from multiprocessing import Pipe
 
@@ -12,7 +11,7 @@ class Ability(ns.ThreadedAbilityBase):
         ('abl_display', 'base', 'Display piped string')
     ]
     _option_list = [
-        ns.StrOpt('msg', 'default', 'Message to invert')
+        ns.StrOpt('msg', default='default', comment='Message to invert')
     ]
 
     def main(self, **kwargs):
@@ -31,7 +30,9 @@ class Ability(ns.ThreadedAbilityBase):
 
         # ask to operate our message
         to_abl.send(self.msg)
-        self._view.debug('[main abl] Sending "{}" to be inverted'.format(self.msg))
+        self._view.debug(
+            '[main abl] Sending "{}" to be inverted'.format(self.msg)
+        )
 
         # close all
         self._view.debug('[main abl] Hit ctrl+c to stop'.format(self.msg))
@@ -45,7 +46,7 @@ class Ability(ns.ThreadedAbilityBase):
     def howto(self):
         self._view.delimiter('Chain ability howto')
         self._view.info("""
-        This ability invert and display its string input value. It is done 
+        This ability invert and display its string input value. It is done
         using two abilities, one that invert the string, and another that
         display it.
         """)

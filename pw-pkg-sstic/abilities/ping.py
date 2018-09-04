@@ -1,15 +1,15 @@
-# coding: utf8
-from packetweaver.core.ns import *
+from packetweaver.core import ns
 import subprocess
 import os
 
-class Ability(AbilityBase):
-    _info = AbilityInfo(
+
+class Ability(ns.AbilityBase):
+    _info = ns.AbilityInfo(
         name='Ping a target',
     )
 
     _option_list = [
-        IpOpt('ip_dst', '8.8.8.8', 'Ping Destination IP'),
+        ns.IpOpt('ip_dst', default='8.8.8.8', comment='Ping Destination IP'),
     ]
 
     def main(self):

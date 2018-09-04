@@ -1,18 +1,20 @@
-# coding: utf8
 import threading
-
 import packetweaver.core.ns as ns
 
 
 class Ability(ns.ThreadedAbilityBase):
     _option_list = [
-        ns.StrOpt('prefix', '', 'Prefix to the echo reply'),
-        ns.StrOpt('client_info', '', 'Information about the client connected to the socket')
+        ns.StrOpt('prefix', default='', comment='Prefix to the echo reply'),
+        ns.StrOpt('client_info',
+                  default='',
+                  comment='Information about the client connected '
+                          'to the socket')
     ]
 
     _info = ns.AbilityInfo(
         name='Echo Server',
-        description='echoes back the received messages with a prefix and the information about the connected client',
+        description='echoes back the received messages with a prefix and '
+                    'the information about the connected client',
         authors=['Florian Maury', ],
         tags=[ns.Tag.EXAMPLE],
         type=ns.AbilityType.COMPONENT
