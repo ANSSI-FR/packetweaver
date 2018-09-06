@@ -269,6 +269,9 @@ subclass instance. It receives a list of ``AbilityBase`` subclass instances::
     inst2 = self.get_dependency('example', port=8081)
     self._start_wait_and_stop([inst1, inst2)
 
+If more flexibility is needed, a ``_start_many`` and a ``_stop_many`` method are
+also available.
+
 On the use of third-party libraries
 -----------------------------------
 
