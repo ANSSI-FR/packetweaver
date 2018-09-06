@@ -60,8 +60,7 @@ class AbilityBase(object):
     def _init_opt_hash(cls):
         if cls._opt_hash is not None:
             return
-        # TODO: check in PY3 - keep options ordered in python2
-        cls._opt_hash = collections.OrderedDict()
+        cls._opt_hash = {}
         for opt in cls._option_list:
             if isinstance(opt, OptionTemplateEntry):
                 opt = opt.entry
