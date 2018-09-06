@@ -454,15 +454,14 @@ class AbilityBase(object):
     def howto(self):
         self._view.help('No howto was defined for this ability yet.')
 
-    def _start_wait_and_stop(self, abl_lst):
+    def _start_many(self, abl_lst):
         for abl in abl_lst:
             self.logger.debug('[{}] calling start'.format(
                 abl._info.get_name())
             )
             abl.start()
 
-        self._wait()
-
+    def _stop_many(self, abl_lst):
         for abl in abl_lst:
             self.logger.debug('[{}] calling stop'.format(abl._info.get_name()))
             abl.stop()
@@ -470,6 +469,11 @@ class AbilityBase(object):
         for abl in abl_lst:
             self.logger.debug('[{}] joining'.format(abl._info.get_name()))
             abl.join()
+
+    def _start_wait_and_stop(self, abl_lst):
+        self._start_many(abl_lst)
+        self._wait()
+        self._stop_many(abl_lst)
 
     """ Emulate a thread/process (duck typing)
          __
