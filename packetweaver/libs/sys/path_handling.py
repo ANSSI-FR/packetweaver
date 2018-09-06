@@ -14,7 +14,9 @@ def get_abs_path(path_, ref=None):
      :param path_: path
      :param ref: reference path to handle relative paths
      :return: absolute path
-     """
+    """
+    if path_ is None:
+        return None
     path = path_
     if path_.startswith('~'):
         path = os.path.expanduser(path_)
