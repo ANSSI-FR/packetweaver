@@ -45,6 +45,7 @@ class AbilityBase(object):
     )
     _dependencies = []
     _internal_dependencies = None
+    log_static = logging.getLogger(__name__ + '-static')
     """:var _option_list: defines the list of options for this ability and
     the default values ; an entry in this dict can either be a plain
     ModuleOption or a OptionTemplateEntry. The difference is in the validation.
@@ -87,10 +88,15 @@ class AbilityBase(object):
 
     @classmethod
     def check_preconditions(cls, module_factory):
+        AbilityBase.log_static.debug('[{}] Init dependencies'.format(
+            cls.get_name())
+        )
         cls._init_internal_dependencies()
         l_dep = []
         for dep in cls._internal_dependencies.keys():
+            AbilityBase.log_static.debug('Dep {} detected'.format(dep))
             inst = cls.cls_get_dependency(dep, module_factory)
+            AbilityBase.log_static.debug('Dep {} instantiated'.format(dep))
             if inst is None:
                 raise Exception('Unknown dependency: {}'.format(dep))
             l_dep += type(inst).check_preconditions(module_factory)
