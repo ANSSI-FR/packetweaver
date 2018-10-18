@@ -97,7 +97,8 @@ Any of these flags can be used if you are filtering with only one tag.
 
     If an ability appear in red in the list, it means that one or more prerequisites to
     run this Ability are missing. You may try to select that Ability in order to get
-    a list of error messages telling what is what.
+    a list of error messages telling what is missing, or run ``editor`` on it to
+    quickly investigate the reason of the failure.
 
 After selecting an index, if no errors are displayed, you now are interacting
 with a CLI specific to the selected Ability. This CLI is described in details in the next chapter.
