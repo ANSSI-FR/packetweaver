@@ -14,7 +14,7 @@ def get_local_net_conf(iface):
     try:
         r = subprocess.check_output(
             ['ip', 'address', 'show', iface]
-        ).replace('\n', ' ')
+        ).replace(b'\n', b' ').decode('utf8')
     except subprocess.CalledProcessError as e:
         raise ValueError('{}'.format(e))
 
