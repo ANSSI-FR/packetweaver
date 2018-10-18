@@ -4,7 +4,7 @@ Installation
 ------------
 All you need to do is getting the source code using git.
 
-.. note:: The framework was tested under Kali Linux (amd64) and Ubuntu 16.04 LTS (amd64).
+.. note:: The framework was tested under Ubuntu 18.04 LTS (amd64).
 
 There are no distribution/pip packages of this framework available yet,
 but this definitely is on our todo-list.
@@ -17,29 +17,21 @@ Browse to your favorite git cloning destination folder (e.g. ~/git/) and clone t
     cd packetweaver
 
 Packetweaver has no strong external dependencies. This means you should be
-ready to go, if you have just the Python2 interpreter and the Python standard
+ready to go, if you have just the Python3 interpreter and the Python standard
 library. If you ever ran Packetweaver that way, however, you would miss quite a
 bunch of helpers that would be automatically disabled.
 
 To enable these helpers, you might want to install some or all of the following
 dependencies:
 
-* ipaddress
 * pyroute2
 * gmpy2
 * pcapy
 
-To install the dependencies, you might either get them from your operating
-system package management system or install them with pip.
+The easiest way to install them is to use a combination of your package manager and pip3::
 
-Probably the easiest way to install all of them on Ubuntu 16.04 LTS is to run the following command::
-
-    sudo apt install python-ipaddress python-pyroute2 python-gmpy2 python-pcapy
-
-You may also install them from pip with the following commands::
-
-    sudo apt install build-essential libpcap-dev python-dev python-pip libgmp-dev libmpfr-dev libmpc-dev
-    sudo pip install ipaddress pyroute2 gmpy2 pcapy
+    sudo apt install python3 python3-dev build-essential libpcap-dev python3-pip libgmp-dev libmpfr-dev libmpc-dev
+    sudo pip3 install pyroute2 gmpy pcapy pyroute2
 
 :ref:`Packages <packages-label>` might require additional dependencies. Please refer to their documentation.
 

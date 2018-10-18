@@ -15,7 +15,7 @@ Documentation toolset installation
 
 To install the documentation toolset, you may run the following commands::
 
-    # pip install sphinx pylint
+    # pip3 install sphinx pylint
     # apt install graphviz
 
 Sphinx is the main library that builds the documentation, and *pylint* is used
@@ -25,7 +25,7 @@ Graphviz is installed to give pyreverse access to the png export format.
 If you want to use the `ReadTheDocs theme
 <https://github.com/rtfd/sphinx_rtd_theme>`_, you may install it using::
 
-    pip install sphinx_rtd_theme
+    pip3 install sphinx_rtd_theme
 
 It will be automatically used by the Sphinx configuration file *conf.py*.
 
