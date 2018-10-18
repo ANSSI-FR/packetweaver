@@ -1,6 +1,26 @@
 Blog and changelog
 ==================
 
+Release v0.3
+------------
+This release is identified by the "v0.3" git tag.
+
+Main changes:
+* Python3.6+ is the only version supported by the framework
+* Ubuntu 18.04 is taken as the reference GNU/Linux distribution for testing
+* Vi is now the default editor in pw.ini
+* Tox is used to run unit tests and pep8 compliance tests
+
+New features:
+* A Dockerfile has been added
+* "ls" can be used as an alias of the "option" command
+
+API evolution:
+* A basic logging system has been added to track the framework internal activity
+* A _start_many() and _stop_many() methods has been added to Ability class
+* A "get_local_net_conf" method is available to get the local machine network configuration
+
+
 Release v0.2
 ------------
 This release is identified by the "v0.2" git tag.
