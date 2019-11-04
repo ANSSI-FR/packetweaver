@@ -1,4 +1,7 @@
 # PacketWeaver
+
+> :warning: This repository is not maintained anymore by ANSSI, use at your own risk
+
 PacketWeaver (pw) is a Python script filing and task sequencing framework.
 
 PacketWeaver is a Python framework, which helps build, organize and reuse your Python scripts. It is the most efficient when used in network script development projects.                                                           
